@@ -36,43 +36,43 @@ public class Store {
 	public Store(String sid, String phone, String street, String city, String state,
 			String zip, String sunHours, String monHours, String tuesHours,
 			String wedHours, String thurHours, String friHours, String satHours) {
-		if(sid != null) {
+		if(sid != null && (sid = sid.trim()).length() > 0) {
 			attributes.put(SID, sid);
 		}
-		if(phone != null) {
+		if(phone != null && (phone = phone.trim()).length() > 0) {
 			attributes.put(PHONE, phone);
 		}
-		if(street != null) {
+		if(street != null && (street = street.trim()).length() > 0) {
 			attributes.put(STREET, street);
 		}
-		if(city != null) {
+		if(city != null && (city = city.trim()).length() > 0) {
 			attributes.put(CITY, city);
 		}
-		if(state != null) {
+		if(state != null && (state = state.trim()).length() > 0) {
 			attributes.put(STATE, state);
 		}
-		if(zip != null) {
+		if(zip != null && (zip = zip.trim()).length() > 0) {
 			attributes.put(ZIP, zip);
 		}
-		if(sunHours != null) {
+		if(sunHours != null && (sunHours = sunHours.trim()).length() > 0) {
 			attributes.put(SUN, sunHours);
 		}
-		if(monHours != null) {
+		if(monHours != null && (monHours = monHours.trim()).length() > 0) {
 			attributes.put(MON, monHours);
 		}
-		if(tuesHours != null) {
+		if(tuesHours != null && (tuesHours = tuesHours.trim()).length() > 0) {
 			attributes.put(TUES, tuesHours);
 		}
-		if(wedHours != null) {
+		if(wedHours != null && (wedHours = wedHours.trim()).length() > 0) {
 			attributes.put(WED, wedHours);
 		}
-		if(thurHours != null) {
+		if(thurHours != null && (thurHours = thurHours.trim()).length() > 0) {
 			attributes.put(THUR, thurHours);
 		}
-		if(friHours != null) {
+		if(friHours != null && (friHours = friHours.trim()).length() > 0) {
 			attributes.put(FRI, friHours);
 		}
-		if(satHours != null) {
+		if(satHours != null && (satHours = satHours.trim()).length() > 0) {
 			attributes.put(SAT, satHours);
 		}
 	}
@@ -140,6 +140,21 @@ public class Store {
 			sList = null;
 		}
 		return sList;
+	}
+	
+	public static String[][] createTableData(List<Store> stores, String[] columnNames) {
+		String[][] output = new String[stores.size()][columnNames.length];
+		for(int storeNum = 0; storeNum < output.length; storeNum++) {
+			for(int columnNum = 0; columnNum < output[storeNum].length; columnNum++) {
+				String result = (String)stores.get(storeNum).attributes.get(columnNames[columnNum]);
+				if(result != null) {
+					output[storeNum][columnNum] = result;
+				} else {
+					output[storeNum][columnNum] = "";
+				}
+			}
+		}
+		return output;
 	}
 	
 	@Override

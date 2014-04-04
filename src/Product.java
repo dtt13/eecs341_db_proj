@@ -2,6 +2,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,13 +22,13 @@ public class Product {
 	}
 	
 	public Product(String upc, String pname, String brand, Integer packageQuantity) {
-		if(upc != null) {
+		if(upc != null && (upc = upc.trim()).length() > 0) {
 			attributes.put(UPC, upc);
 		}
-		if(pname != null) {
+		if(pname != null && (pname = pname.trim()).length() > 0) {
 			attributes.put(PNAME, pname);
 		}
-		if(brand != null) {
+		if(brand != null && (brand = brand.trim()).length() > 0) {
 			attributes.put(BRAND, brand);
 		}
 		if(packageQuantity != null) {
@@ -55,21 +56,20 @@ public class Product {
 		return attributes.size();
 	}
 	
-	public List<Product> find(Connection conn) {
+	public List<Product> find(Connection conn, Store store) {
 		// generate sql expression
-		StringBuilder sql  = new StringBuilder("select * from products p where");
+		StringBuilder sql  = new StringBuilder("select p.`upc`, p.`pname`, p.`brand`, p.`package_quantity` "
+				+ "from products p, stock s where s.`sid`=" + store.getSid() + " and s.`upc`=p.`upc`");
 		String attributeNames[] = attributes.keySet().toArray(new String[]{});
 		for(int i = 0; i < attributeNames.length; i++) {
-			sql.append(" p.`" + attributeNames[i] + "`= ?");
-			if(i < attributeNames.length - 1) {
-				sql.append(" and");
-			}
+			sql.append(" and p.`" + attributeNames[i] + "`= ?");
 		}
 		sql.append(';');
 		// query database and extract results
 		List<Product> pList = new ArrayList<Product>();
 		try {
 			PreparedStatement findProduct = conn.prepareStatement(sql.toString());
+			
 			for(int i = 0; i < attributeNames.length; i++) {
 				if(attributeNames[i].equals(QUANTITY)) {
 					findProduct.setInt(i + 1, (Integer)attributes.get(attributeNames[i]));
@@ -87,6 +87,36 @@ public class Product {
 			pList = null;
 		}
 		return pList;
+	}
+	
+	public Double getPrice(Connection conn, Store store) {
+		try {
+			Statement findPrice = conn.createStatement();
+			ResultSet result = findPrice.executeQuery("select s.`price` "
+					+ "from stock s where s.`upc`='" + getUpc() + "' and s.`sid`='" + store.getSid() + "';");
+			while(result.next()) {
+				return result.getDouble(1);
+			}
+		} catch(SQLException e) {
+			System.err.println("Error getting price");
+			System.err.println(e.getMessage());
+		}
+		return null;
+	}
+	
+	public static String[][] createTableData(List<Product> products, String[] columnNames) {
+		String[][] output = new String[products.size()][columnNames.length];
+		for(int productNum = 0; productNum < output.length; productNum++) {
+			for(int columnNum = 0; columnNum < output[productNum].length; columnNum++) {
+				String result = products.get(productNum).attributes.get(columnNames[columnNum]).toString();
+				if(result != null) {
+					output[productNum][columnNum] = result;
+				} else {
+					output[productNum][columnNum] = "";
+				}
+			}
+		}
+		return output;
 	}
 	
 	@Override
