@@ -3,11 +3,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 
-public class Store {
+public class Store extends Relation {
 	
 	private static final String SID = "sid";
 	private static final String PHONE = "phone";
@@ -23,7 +22,7 @@ public class Store {
 	private static final String FRI = "fri_hours";
 	private static final String SAT = "sat_hours";
 	
-	HashMap<String, Object> attributes = new HashMap<String, Object>();
+//	HashMap<String, Object> attributes = new HashMap<String, Object>();
 	
 	public Store(ResultSet set) throws SQLException {
 		this(set.getString(SID), set.getString(PHONE), set.getString(STREET),
@@ -112,19 +111,22 @@ public class Store {
 		return attributes.size();
 	}
 	
-	public List<Store> find(Connection conn) {
+	public List<Relation> find(Connection conn) {
 		// generate sql expression
-		StringBuilder sql  = new StringBuilder("select * from stores s where");
+		StringBuilder sql  = new StringBuilder("select * from stores s ");
 		String attributeNames[] = attributes.keySet().toArray(new String[]{});
-		for(int i = 0; i < attributeNames.length; i++) {
-			sql.append(" s.`" + attributeNames[i] + "`= ?");
-			if(i < attributeNames.length - 1) {
-				sql.append(" and");
+		if(attributeNames.length > 0) {
+			sql.append("where");
+			for(int i = 0; i < attributeNames.length; i++) {
+				sql.append(" s.`" + attributeNames[i] + "`= ?");
+				if(i < attributeNames.length - 1) {
+					sql.append(" and");
+				}
 			}
 		}
 		sql.append(';');
 		// query database and extract results
-		List<Store> sList = new ArrayList<Store>();
+		List<Relation> sList = new ArrayList<Relation>();
 		try {
 			PreparedStatement findStore = conn.prepareStatement(sql.toString());
 			for(int i = 0; i < attributeNames.length; i++) {
@@ -140,21 +142,6 @@ public class Store {
 			sList = null;
 		}
 		return sList;
-	}
-	
-	public static String[][] createTableData(List<Store> stores, String[] columnNames) {
-		String[][] output = new String[stores.size()][columnNames.length];
-		for(int storeNum = 0; storeNum < output.length; storeNum++) {
-			for(int columnNum = 0; columnNum < output[storeNum].length; columnNum++) {
-				String result = (String)stores.get(storeNum).attributes.get(columnNames[columnNum]);
-				if(result != null) {
-					output[storeNum][columnNum] = result;
-				} else {
-					output[storeNum][columnNum] = "";
-				}
-			}
-		}
-		return output;
 	}
 	
 	@Override
@@ -186,7 +173,6 @@ public class Store {
 			builder.append(attributes.get(ZIP));
 			added++;
 		}
-		
 		return builder.toString();
 	}
 }

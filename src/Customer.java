@@ -3,10 +3,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
-public class Customer {
+public class Customer extends Relation {
 	
 	private static final String CID = "cid";
 	private static final String FIRST_NAME = "first_name";
@@ -18,8 +17,6 @@ public class Customer {
 	private static final String STATE = "state";
 	private static final String ZIP = "zip";
 	
-	private HashMap<String, Object> attributes = new HashMap<String, Object>();
-	
 	public Customer(ResultSet set) throws SQLException {
 		this(set.getString(CID), set.getString(FIRST_NAME), set.getString(LAST_NAME),
 				set.getString(PHONE), set.getString(EMAIL), set.getString(STREET),
@@ -28,31 +25,31 @@ public class Customer {
 	
 	public Customer(String cid, String firstName, String lastName, String phone, String email,
 			String street, String city, String state, String zip) {
-		if(cid != null) {
+		if(cid != null && (cid = cid.trim()).length() > 0) {
 			attributes.put(CID, cid);
 		}
-		if(firstName != null) {
+		if(firstName != null && (firstName = firstName.trim()).length() > 0) {
 			attributes.put(FIRST_NAME, firstName);
 		}
-		if(lastName != null) {
+		if(lastName != null && (lastName = lastName.trim()).length() > 0) {
 			attributes.put(LAST_NAME, lastName);
 		}
-		if(phone != null) {
+		if(phone != null && (phone = phone.trim()).length() > 0) {
 			attributes.put(PHONE, phone);
 		}
-		if(email != null) {
+		if(email != null && (email = email.trim()).length() > 0) {
 			attributes.put(EMAIL, email);
 		}
-		if(street != null) {
+		if(street != null && (street = street.trim()).length() > 0) {
 			attributes.put(STREET, street);
 		}
-		if(city != null) {
+		if(city != null && (city = city.trim()).length() > 0) {
 			attributes.put(CITY, city);
 		}
-		if(state != null) {
+		if(state != null && (state = state.trim()).length() > 0) {
 			attributes.put(STATE, state);
 		}
-		if(zip != null) {
+		if(zip != null && (zip = zip.trim()).length() > 0) {
 			attributes.put(ZIP, zip);
 		}
 	}
@@ -97,19 +94,22 @@ public class Customer {
 		return attributes.size();
 	}
 	
-	public List<Customer> find(Connection conn) {
+	public List<Relation> find(Connection conn) {
 		// generate sql expression
-		StringBuilder sql  = new StringBuilder("select * from customers c where");
+		StringBuilder sql  = new StringBuilder("select * from customers c ");
 		String attributeNames[] = attributes.keySet().toArray(new String[]{});
-		for(int i = 0; i < attributeNames.length; i++) {
-			sql.append(" c.`" + attributeNames[i] + "`= ?");
-			if(i < attributeNames.length - 1) {
-				sql.append(" and");
+		if(attributeNames.length > 0) {
+			sql.append("where");
+			for(int i = 0; i < attributeNames.length; i++) {
+				sql.append(" c.`" + attributeNames[i] + "`= ?");
+				if(i < attributeNames.length - 1) {
+					sql.append(" and");
+				}
 			}
 		}
 		sql.append(';');
 		// query database and extract results
-		List<Customer> cList = new ArrayList<Customer>();
+		List<Relation> cList = new ArrayList<Relation>();
 		try {
 			PreparedStatement findCustomer = conn.prepareStatement(sql.toString());
 			for(int i = 0; i < attributeNames.length; i++) {

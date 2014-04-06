@@ -1,6 +1,5 @@
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -9,11 +8,14 @@ import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.swing.GroupLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
@@ -23,20 +25,28 @@ import javax.swing.table.DefaultTableModel;
 
 public class Cashier extends JFrame implements ActionListener {
 	
+	private static final String[] STORE_SELECTION_COLS = {"sid", "street", "city", "state", "phone"};
+	private static final String[] ITEM_SEARCH_COLS = {"upc", "pname", "brand", "package_quantity"};
+	private static final String[] CHECKOUT_COLS = {"upc", "quantity", "price"};
+	private static final String[] CUSTOMER_SELECTION_COLS = {"first_name", "last_name", "phone", "email"};
+	
 	private static enum Screen{
 		STORE_SIGNIN("Store Sign-In"),
-		STORE_SELECTION("Store Selection"),
-		ITEM_SCAN("Item Scan");
+		ITEM_SCAN("Item Scan"),
+		CUSTOMER_SIGNIN("Customer Sign-In"),
+//		CONFIRM_ORDER("Confirm Order");
 		private String name;
 		private Screen(String name) { this.name = name; }		
 		public String getName() { return name; }
 	};
 	
+	private Screen currentScreen;
+	
 	// global variables for storing query results
-	List<Store> storeList = null;
-	List<Product> productList = null;
-	List<Consists> checkoutList = new LinkedList<Consists>();
-	List<Customer> customerList = null;
+	List<Relation> storeList = null;
+	List<Relation> productList = null;
+	List<Relation> customerList = null;
+	List<Relation> checkoutList = new LinkedList<Relation>();
 	
 	Store store = null;
 	Product product = null;
@@ -47,35 +57,51 @@ public class Cashier extends JFrame implements ActionListener {
 	private JPanel titlePanel;
 	private ImageIcon logo;
 	private JLabel titleLabel;
+	private JButton signOutButton;
+	private JButton backButton;
 	
 	// store sign-in screen
 	private JPanel storeSignInPanel;
-//	private JLabel storeSignInLabel;
-	private JTextField sidSignInText;
-	private JButton sidSignInButton;
-	
-	// store selection screen
-	private JPanel storeSelectionPanel;
+	private JLabel storeSidLabel;
+	private JLabel storeCityLabel;
+	private JLabel storeStateLabel;
+	private JTextField storeSidText;
+	private JTextField storeCityText;
+	private JTextField storeStateText;
 	private JTable storeSelectionTable;
+	private JButton storeFindButton;
 	private JButton storeSelectionButton;
 	
 	// item scan screen
 	private JPanel itemScanPanel;
-	private JPanel itemSearchPanel;
+	private JLabel upcLabel;
+	private JLabel pnameLabel;
+	private JLabel brandLabel;
 	private JTextField itemSearchUpcText;
+	private JTextField itemSearchPnameText;
 	private JTextField itemSearchBrandText;
 	private JButton itemSearchButton;
 	private JButton addItemButton;
 	private JTable itemSearchTable;
-	private JPanel checkoutPanel;
 	private JButton removeItemButton;
 	private JButton checkoutButton;
 	private JTable checkoutTable;
 	private JLabel checkoutTotalLabel;
 	
+	// customer sign-in screen
+	private JPanel customerSignInPanel;
+	private JLabel customerFNLabel;
+	private JLabel customerLNLabel;
+	private JTextField customerFNText;
+	private JTextField customerLNText;
+	private JTable customerSelectionTable;
+	private JButton customerFindButton;
+	private JButton customerSelectionButton;
+	
 	
 	public Cashier() {
 		this.setLayout(new BorderLayout());
+		GroupLayout groupLayout;
 		
 		// top level panel
 		topLevelScreen = new JPanel(new CardLayout());
@@ -85,58 +111,213 @@ public class Cashier extends JFrame implements ActionListener {
 		titlePanel = new JPanel(new BorderLayout());
 		logo = new ImageIcon("logo.jpg");
 		titleLabel = new JLabel(logo);
+		signOutButton = new JButton("Sign out");
+		signOutButton.addActionListener(this);
+		backButton = new JButton("Back");
+		backButton.addActionListener(this);
+		JPanel signOutPanel = new JPanel();
+		signOutPanel.add(backButton);
+		signOutPanel.add(signOutButton);
 		titlePanel.add(titleLabel, BorderLayout.WEST);
+		titlePanel.add(signOutPanel, BorderLayout.EAST);
 		this.add(titlePanel, BorderLayout.NORTH);
 		
 		// store sign-in screen
-		storeSignInPanel = new JPanel(new FlowLayout());
-		sidSignInText = new JTextField("Enter sid", 20);
-		sidSignInButton = new JButton("Find");
-		sidSignInButton.addActionListener(this);
-		storeSignInPanel.add(sidSignInText);
-		storeSignInPanel.add(sidSignInButton);
-		topLevelScreen.add(storeSignInPanel, Screen.STORE_SIGNIN.getName());
-		
-		// store selection screen
-		storeSelectionPanel = new JPanel(new FlowLayout());
-		storeSelectionTable = createTable();
+		storeSignInPanel = new JPanel();
+		groupLayout = new GroupLayout(storeSignInPanel);
+		storeSignInPanel.setLayout(groupLayout);
+		groupLayout.setAutoCreateGaps(true);
+		groupLayout.setAutoCreateContainerGaps(true);
+		storeSidLabel = new JLabel("Store ID");
+		storeCityLabel = new JLabel("City");
+		storeStateLabel = new JLabel("State");
+		storeSidText = new JTextField();
+		storeCityText = new JTextField();
+		storeStateText = new JTextField();
+		storeFindButton = new JButton("Find");
+		storeFindButton.addActionListener(this);
 		storeSelectionButton = new JButton("OK");
 		storeSelectionButton.addActionListener(this);
-		storeSelectionPanel.add(storeSelectionTable);
-		storeSelectionPanel.add(storeSelectionButton);
-		topLevelScreen.add(storeSelectionPanel, Screen.STORE_SELECTION.getName());
+		storeSelectionTable = createTable(STORE_SELECTION_COLS);
+		JScrollPane storeScrollContainer = new JScrollPane(storeSelectionTable);
+		groupLayout.setHorizontalGroup(
+				groupLayout.createSequentialGroup()
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+						.addGroup(groupLayout.createSequentialGroup()
+								.addComponent(storeSidLabel)
+								.addComponent(storeSidText)
+								)
+						.addGroup(groupLayout.createSequentialGroup()
+								.addComponent(storeCityLabel)
+								.addComponent(storeCityText)
+								)
+						.addGroup(groupLayout.createSequentialGroup()
+								.addComponent(storeStateLabel)
+								.addComponent(storeStateText)
+								)		
+						.addComponent(storeFindButton)
+						)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+						.addComponent(storeScrollContainer)
+						.addComponent(storeSelectionButton)
+						)
+				);
+		groupLayout.setVerticalGroup(
+				groupLayout.createSequentialGroup()
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addGroup(groupLayout.createSequentialGroup()
+								.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+										.addComponent(storeSidLabel)
+										.addComponent(storeSidText)
+										)
+								.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+										.addComponent(storeCityLabel)
+										.addComponent(storeCityText)
+										)
+								.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+										.addComponent(storeStateLabel)
+										.addComponent(storeStateText)
+										)
+								.addComponent(storeFindButton)
+								)
+						.addComponent(storeScrollContainer)
+						)
+				.addComponent(storeSelectionButton)
+				);
+		topLevelScreen.add(storeSignInPanel, Screen.STORE_SIGNIN.getName());
 		
 		// item scan screen
 		itemScanPanel = new JPanel(new BorderLayout());
-		
-		itemSearchPanel = new JPanel(new FlowLayout());
-		itemSearchUpcText = new JTextField("Enter UPC", 12);
-		itemSearchBrandText = new JTextField("Enter Brand", 20);
+		groupLayout = new GroupLayout(itemScanPanel);
+		itemScanPanel.setLayout(groupLayout);
+		groupLayout.setAutoCreateGaps(true);
+		groupLayout.setAutoCreateContainerGaps(true);
+		upcLabel = new JLabel("UPC");
+		pnameLabel = new JLabel("Name");
+		brandLabel = new JLabel("Brand");
+		itemSearchUpcText = new JTextField();
+		itemSearchPnameText = new JTextField();
+		itemSearchBrandText = new JTextField();
 		itemSearchButton = new JButton("Find");
 		itemSearchButton.addActionListener(this);
-		itemSearchTable = createTable();
+		itemSearchTable = createTable(ITEM_SEARCH_COLS);
+		JScrollPane searchScrollContainer = new JScrollPane(itemSearchTable);
 		addItemButton = new JButton("Add>>");
 		addItemButton.addActionListener(this);
-		itemSearchPanel.add(itemSearchUpcText);
-		itemSearchPanel.add(itemSearchBrandText);
-		itemSearchPanel.add(itemSearchButton);
-		itemSearchPanel.add(itemSearchTable);
-		itemSearchPanel.add(addItemButton);
-		checkoutPanel = new JPanel(new FlowLayout());
-		checkoutTable = createTable();
-		checkoutTotalLabel = new JLabel("$0.00");
+		checkoutTable = createTable(CHECKOUT_COLS);
+		JScrollPane checkoutScrollContainer = new JScrollPane(checkoutTable);
+		checkoutTotalLabel = new JLabel("$  0.00");
 		removeItemButton = new JButton("<<Remove");
 		removeItemButton.addActionListener(this);
 		checkoutButton = new JButton("Checkout");
 		checkoutButton.addActionListener(this);
-		checkoutPanel.add(checkoutTable);
-		checkoutPanel.add(checkoutTotalLabel);
-		checkoutPanel.add(removeItemButton);
-		checkoutPanel.add(checkoutButton);
-		
-		itemScanPanel.add(itemSearchPanel, BorderLayout.CENTER);
-		itemScanPanel.add(checkoutPanel, BorderLayout.EAST);
+		groupLayout.setHorizontalGroup(
+				groupLayout.createSequentialGroup()
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+						.addGroup(groupLayout.createSequentialGroup()
+								.addComponent(upcLabel)
+								.addComponent(itemSearchUpcText)
+								)
+						.addGroup(groupLayout.createSequentialGroup()
+								.addComponent(pnameLabel)
+								.addComponent(itemSearchPnameText)
+								)
+						.addGroup(groupLayout.createSequentialGroup()
+								.addComponent(brandLabel)
+								.addComponent(itemSearchBrandText)
+								)		
+						.addComponent(itemSearchButton)
+						.addComponent(searchScrollContainer)
+						.addComponent(addItemButton)
+						)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+						.addComponent(checkoutScrollContainer)
+						.addComponent(checkoutTotalLabel)
+						.addComponent(removeItemButton)
+						.addComponent(checkoutButton)
+						)
+				);
+		groupLayout.setVerticalGroup(
+				groupLayout.createSequentialGroup()
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(upcLabel)
+						.addComponent(itemSearchUpcText)
+						)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(pnameLabel)
+						.addComponent(itemSearchPnameText)
+						)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(brandLabel)
+						.addComponent(itemSearchBrandText)
+						)
+				.addComponent(itemSearchButton)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+						.addComponent(checkoutScrollContainer)
+						.addComponent(searchScrollContainer)
+						)
+				.addComponent(checkoutTotalLabel)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(addItemButton)
+						.addComponent(removeItemButton)
+						)
+				.addComponent(checkoutButton)
+				);
 		topLevelScreen.add(itemScanPanel, Screen.ITEM_SCAN.getName());
+		
+		// customer sign-in screen
+		customerSignInPanel = new JPanel();
+		groupLayout = new GroupLayout(customerSignInPanel);
+		customerSignInPanel.setLayout(groupLayout);
+		groupLayout.setAutoCreateGaps(true);
+		groupLayout.setAutoCreateContainerGaps(true);
+		customerFNLabel = new JLabel("First Name");
+		customerLNLabel = new JLabel("Last Name");
+		customerFNText = new JTextField();
+		customerLNText = new JTextField();
+		customerFindButton = new JButton("Find");
+		customerFindButton.addActionListener(this);
+		customerSelectionButton = new JButton("OK");
+		customerSelectionButton.addActionListener(this);
+		customerSelectionTable = createTable(CUSTOMER_SELECTION_COLS);
+		JScrollPane customerScrollContainer = new JScrollPane(customerSelectionTable);
+		groupLayout.setHorizontalGroup(
+				groupLayout.createSequentialGroup()
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+						.addGroup(groupLayout.createSequentialGroup()
+								.addComponent(customerFNLabel)
+								.addComponent(customerFNText)
+								)
+						.addGroup(groupLayout.createSequentialGroup()
+								.addComponent(customerLNLabel)
+								.addComponent(customerLNText)
+								)	
+						.addComponent(customerFindButton)
+						)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+						.addComponent(customerScrollContainer)
+						.addComponent(customerSelectionButton)
+						)
+				);
+		groupLayout.setVerticalGroup(
+				groupLayout.createSequentialGroup()
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addGroup(groupLayout.createSequentialGroup()
+								.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+										.addComponent(customerFNLabel)
+										.addComponent(customerFNText)
+										)
+								.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+										.addComponent(customerLNLabel)
+										.addComponent(customerLNText)
+										)
+								.addComponent(customerFindButton)
+								)
+						.addComponent(customerScrollContainer)
+						)
+				.addComponent(customerSelectionButton)
+				);
+		topLevelScreen.add(customerSignInPanel, Screen.CUSTOMER_SIGNIN.getName());
 		
 		switchScreen(Screen.STORE_SIGNIN);
 	}
@@ -145,10 +326,24 @@ public class Cashier extends JFrame implements ActionListener {
 		CardLayout layout = (CardLayout)topLevelScreen.getLayout();
 		layout.show(topLevelScreen, screen.getName());
 		titleLabel.setText(screen.getName());
+		switch(screen) {
+		case STORE_SIGNIN:
+			signOutButton.setEnabled(false);
+			backButton.setEnabled(false);
+			break;
+		case ITEM_SCAN:
+			signOutButton.setEnabled(true);
+			backButton.setEnabled(false);
+			break;
+		default:
+			signOutButton.setEnabled(true);
+			backButton.setEnabled(true);
+		}
+		currentScreen = screen;
 	}
 	
-	private JTable createTable() {
-		JTable table = new JTable() {
+	private JTable createTable(String[] columnNames) {
+		JTable table = new JTable(new String[0][columnNames.length], columnNames) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
@@ -156,26 +351,80 @@ public class Cashier extends JFrame implements ActionListener {
 		};
 		return table;
 	}
+	
+	private void updateTable(JTable table, List<Relation> data, String[] columnNames) {
+		String[][] tableData = Relation.createTableData(data, columnNames);
+		table.setModel(new DefaultTableModel(tableData, columnNames));
+	}
+	
+	private void clearTable(JTable table) {
+		int numColumns = table.getColumnCount();
+		String[] columnNames = new String[numColumns];
+		for(int i = 0; i < numColumns; i++) {
+			columnNames[i] = table.getColumnName(i);
+		}
+		String[][] tableData = new String[0][numColumns];
+		table.setModel(new DefaultTableModel(tableData, columnNames));
+	}
+	
+	private void updateTotal() {
+		double total = 0.0;
+		for(Relation r : checkoutList) {
+			Consists c = (Consists)r;
+			total += Math.round(c.getQuantity() * c.getPrice() * 100.0) / 100.0;
+		}
+		checkoutTotalLabel.setText("$" + String.format("%10.2f", total));
+	}
+	
+	private void signOut() {
+		resetStoreSignIn();
+		resetItemScan();
+		resetCustomerSignIn();
+		switchScreen(Screen.STORE_SIGNIN);
+	}
+	
+	private void resetStoreSignIn() {
+		store = null;
+		storeList = null;
+		clearTable(storeSelectionTable);
+		storeSidText.setText("");
+		storeCityText.setText("");
+		storeStateText.setText("");
+	}
+	
+	private void resetItemScan() {
+		product = null;
+		productList = null;
+		checkoutList = new LinkedList<Relation>();
+		clearTable(itemSearchTable);
+		clearTable(checkoutTable);
+		itemSearchUpcText.setText("");
+		itemSearchPnameText.setText("");
+		itemSearchBrandText.setText("");
+	}
+	
+	private void resetCustomerSignIn() {
+		customer = null;
+		customerList = null;
+		clearTable(customerSelectionTable);
+		customerFNText.setText("");
+		customerLNText.setText("");
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		JButton src = (JButton)e.getSource();
-		if(src.equals(sidSignInButton)) {
-			Store s = new Store(null/*sidSignInText.getText()*/	, null, null, null,
-					"Ohio", null, null, null, null, null, null, null, null); //TODO change that shit back
+		if(src.equals(storeFindButton)) {
+			Store s = new Store(storeSidText.getText(), null, null, storeCityText.getText(),
+					storeStateText.getText(), null, null, null, null, null, null, null, null);
 			Connection conn = DatabaseUtils.openConnection();
 			storeList = s.find(conn);
-			String[] columns = {"sid", "street", "city", "state", "phone"};
-			String[][] data = Store.createTableData(storeList, columns);
-			storeSelectionTable.setModel(new DefaultTableModel(data, columns));
-//			storeSelectionTable.getCol
 			DatabaseUtils.closeConnection(conn);
-			switchScreen(Screen.STORE_SELECTION);
+			updateTable(storeSelectionTable, storeList, STORE_SELECTION_COLS);
 		} else if(src.equals(storeSelectionButton)) {
 			int storeIndex = storeSelectionTable.getSelectedRow();
 			if(storeIndex >= 0) {
-				store = storeList.get(storeIndex);
-				System.out.println(store);
+				store = (Store)storeList.get(storeIndex);
 				switchScreen(Screen.ITEM_SCAN);
 			} else {
 				// TODO display message to gui
@@ -185,41 +434,71 @@ public class Cashier extends JFrame implements ActionListener {
 					itemSearchBrandText.getText(), null);
 			Connection conn = DatabaseUtils.openConnection();
 			productList = p.find(conn, store);
-			String[] columns = {"upc", "pname", "brand", "package_quantity"};
-			String[][] data = Product.createTableData(productList, columns);
-			itemSearchTable.setModel(new DefaultTableModel(data, columns));
+			updateTable(itemSearchTable, productList, ITEM_SEARCH_COLS);
 			DatabaseUtils.closeConnection(conn);
 		} else if(src.equals(addItemButton)) {
 			int productIndex = itemSearchTable.getSelectedRow();
 			if(productIndex >= 0) {
-				product = productList.get(productIndex);
+				product = (Product)productList.get(productIndex);
 				Connection conn = DatabaseUtils.openConnection();
-				Consists consists = new Consists(product, product.getPrice(conn, store));
+				Consists consists = new Consists(product, null);
 				if(checkoutList.contains(consists)) {
-					checkoutList.get(checkoutList.indexOf(consists)).incrementQuantity();
+					((Consists)checkoutList.get(checkoutList.indexOf(consists))).incrementQuantity();
 				} else {
-					checkoutList.add(new Consists(product, product.getPrice(conn, store)));
+					checkoutList.add(new Consists(product, product.findPrice(conn, store)));
 				}
 				DatabaseUtils.closeConnection(conn);
-				System.out.println(product + " added to checkout list");
-//				for(Consists checkout : checkoutList) {
-//					System.out.println(checkout);
-//				}
-				//TODO update the checkout table
+				updateTable(checkoutTable, checkoutList, CHECKOUT_COLS);
+				updateTotal();
 			}
 		} else if(src.equals(removeItemButton)) {
 			int checkoutIndex = checkoutTable.getSelectedRow();
 			if(checkoutIndex >= 0) {
-				Consists checkout = checkoutList.get(checkoutIndex);
+				Consists checkout = (Consists)checkoutList.get(checkoutIndex);
 				checkout.decrementQuantity();
 				if(checkout.getQuantity() == 0) {
 					checkoutList.remove(checkoutIndex);
 				}
-				//TODO update the checkout table
-				System.out.println(checkout + " removed from checkout list");
+				updateTable(checkoutTable, checkoutList, CHECKOUT_COLS);
+				if(checkoutList.size() > checkoutIndex) {
+					checkoutTable.setRowSelectionInterval(checkoutIndex, checkoutIndex);
+				}
+				updateTotal();
 			}
 		} else if(src.equals(checkoutButton)) {
-			//TODO complete transaction
+			switchScreen(Screen.CUSTOMER_SIGNIN);
+		} else if(src.equals(customerFindButton)) {
+			Customer c = new Customer(null, customerFNText.getText(), customerLNText.getText(),
+					null, null, null, null, null, null);
+			Connection conn = DatabaseUtils.openConnection();
+			customerList = c.find(conn);
+			DatabaseUtils.closeConnection(conn);
+			updateTable(customerSelectionTable, customerList, CUSTOMER_SELECTION_COLS);
+		} else if(src.equals(customerSelectionButton)) {
+			int customerIndex = customerSelectionTable.getSelectedRow();
+			if(customerIndex >= 0) {
+				customer = (Customer)customerList.get(customerIndex);
+				switchScreen(Screen.ITEM_SCAN);
+			} else {
+				// TODO display message to gui
+			}
+		} else if(src.equals(signOutButton)) {
+			boolean isConfirmed = (JOptionPane.showConfirmDialog(this,
+					"Any incomplete transactions will be lost upon signing out.\n"
+					+ "Do you wish to continue?",
+					"Sign out",
+					JOptionPane.YES_NO_OPTION)) == 0;
+			if(isConfirmed) {
+				signOut();
+			}
+		} else if(src.equals(backButton)) {
+			switch(currentScreen) {
+			case CUSTOMER_SIGNIN:
+				switchScreen(Screen.ITEM_SCAN);
+				break;
+			default:
+				;
+			}
 		}
 	}
 

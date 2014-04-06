@@ -1,14 +1,13 @@
-import java.util.HashMap;
 
 
-public class Consists {
+public class Consists extends Relation {
 	
 	private static final String ORDER_NO = "order_no";
 	private static final String UPC = "upc";
 	private static final String PRICE = "price";
 	private static final String QUANTITY = "quantity";
 	
-	HashMap<String, Object> attributes = new HashMap<String, Object>();
+//	HashMap<String, Object> attributes = new HashMap<String, Object>();
 	
 	public Consists(Product product, Double price) {
 		this(null, product.getUpc(), price, 1);
@@ -43,13 +42,6 @@ public class Consists {
 		return (Double)attributes.get(PRICE);
 	}
 	
-	public String getPriceString() {
-		if(getPrice() != null) {
-			return "$" + getPrice();
-		}
-		return null;
-	}
-	
 	public Integer getQuantity() {
 		return (Integer)attributes.get(QUANTITY);
 	}
@@ -80,5 +72,12 @@ public class Consists {
 			return (this.getUpc() != null && this.getUpc().equals(c.getUpc()));
 		}
 		return false;
+	}
+
+	private String getPriceString() {
+		if(getPrice() != null) {
+			return "$" + getPrice();
+		}
+		return null;
 	}
 }

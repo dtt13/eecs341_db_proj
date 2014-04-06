@@ -4,18 +4,17 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 
-public class Product {
+public class Product extends Relation {
 
 	private static final String UPC = "upc";
 	private static final String PNAME = "pname";
 	private static final String BRAND = "brand";
 	private static final String QUANTITY = "package_quantity";
 	
-	private HashMap<String, Object> attributes = new HashMap<String, Object>();
+//	private HashMap<String, Object> attributes = new HashMap<String, Object>();
 	
 	public Product(ResultSet set) throws SQLException {
 		this(set.getString(UPC), set.getString(PNAME), set.getString(BRAND), set.getInt(QUANTITY));
@@ -56,7 +55,7 @@ public class Product {
 		return attributes.size();
 	}
 	
-	public List<Product> find(Connection conn, Store store) {
+	public List<Relation> find(Connection conn, Store store) {
 		// generate sql expression
 		StringBuilder sql  = new StringBuilder("select p.`upc`, p.`pname`, p.`brand`, p.`package_quantity` "
 				+ "from products p, stock s where s.`sid`=" + store.getSid() + " and s.`upc`=p.`upc`");
@@ -66,7 +65,7 @@ public class Product {
 		}
 		sql.append(';');
 		// query database and extract results
-		List<Product> pList = new ArrayList<Product>();
+		List<Relation> pList = new ArrayList<Relation>();
 		try {
 			PreparedStatement findProduct = conn.prepareStatement(sql.toString());
 			
@@ -89,7 +88,7 @@ public class Product {
 		return pList;
 	}
 	
-	public Double getPrice(Connection conn, Store store) {
+	public Double findPrice(Connection conn, Store store) {
 		try {
 			Statement findPrice = conn.createStatement();
 			ResultSet result = findPrice.executeQuery("select s.`price` "
@@ -104,20 +103,20 @@ public class Product {
 		return null;
 	}
 	
-	public static String[][] createTableData(List<Product> products, String[] columnNames) {
-		String[][] output = new String[products.size()][columnNames.length];
-		for(int productNum = 0; productNum < output.length; productNum++) {
-			for(int columnNum = 0; columnNum < output[productNum].length; columnNum++) {
-				String result = products.get(productNum).attributes.get(columnNames[columnNum]).toString();
-				if(result != null) {
-					output[productNum][columnNum] = result;
-				} else {
-					output[productNum][columnNum] = "";
-				}
-			}
-		}
-		return output;
-	}
+//	public static String[][] createTableData(List<Product> products, String[] columnNames) {
+//		String[][] output = new String[products.size()][columnNames.length];
+//		for(int productNum = 0; productNum < output.length; productNum++) {
+//			for(int columnNum = 0; columnNum < output[productNum].length; columnNum++) {
+//				String result = products.get(productNum).attributes.get(columnNames[columnNum]).toString();
+//				if(result != null) {
+//					output[productNum][columnNum] = result;
+//				} else {
+//					output[productNum][columnNum] = "";
+//				}
+//			}
+//		}
+//		return output;
+//	}
 	
 	@Override
 	public String toString() {
