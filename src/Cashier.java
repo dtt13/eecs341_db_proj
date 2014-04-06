@@ -17,6 +17,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
@@ -34,7 +35,7 @@ public class Cashier extends JFrame implements ActionListener {
 		STORE_SIGNIN("Store Sign-In"),
 		ITEM_SCAN("Item Scan"),
 		CUSTOMER_SIGNIN("Customer Sign-In"),
-//		CONFIRM_ORDER("Confirm Order");
+		CONFIRM_ORDER("Confirm Order");
 		private String name;
 		private Screen(String name) { this.name = name; }		
 		public String getName() { return name; }
@@ -98,6 +99,13 @@ public class Cashier extends JFrame implements ActionListener {
 	private JButton customerFindButton;
 	private JButton customerSelectionButton;
 	
+	// confirm order screen
+	private JPanel confirmOrderPanel;
+	private JLabel customerInfoLabel;
+	private JLabel confirmOrderTotalLabel;
+	private JTextArea customerInfoText;
+	private JTable confirmOrderTable;
+	private JButton confirmOrderButton;
 	
 	public Cashier() {
 		this.setLayout(new BorderLayout());
@@ -319,6 +327,46 @@ public class Cashier extends JFrame implements ActionListener {
 				);
 		topLevelScreen.add(customerSignInPanel, Screen.CUSTOMER_SIGNIN.getName());
 		
+		// confirm order screen
+		confirmOrderPanel = new JPanel();
+		groupLayout = new GroupLayout(confirmOrderPanel);
+		confirmOrderPanel.setLayout(groupLayout);
+		groupLayout.setAutoCreateGaps(true);
+		groupLayout.setAutoCreateContainerGaps(true);
+		customerInfoLabel = new JLabel("Customer Info");
+		confirmOrderTotalLabel = new JLabel(" $  0.00");
+		customerInfoText = new JTextArea();
+		customerInfoText.setEditable(false);
+		confirmOrderTable = createTable(CHECKOUT_COLS);
+		JScrollPane confirmScrollContainer = new JScrollPane(confirmOrderTable);
+		confirmOrderButton = new JButton("Confirm");
+		confirmOrderButton.addActionListener(this);
+		groupLayout.setHorizontalGroup(
+				groupLayout.createSequentialGroup()
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+						.addComponent(customerInfoLabel)
+						.addComponent(customerInfoText)
+						)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+						.addComponent(confirmScrollContainer)
+						.addComponent(confirmOrderTotalLabel)
+						.addComponent(confirmOrderButton)
+						)
+				);
+		groupLayout.setVerticalGroup(
+				groupLayout.createSequentialGroup()
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addGroup(groupLayout.createSequentialGroup()
+								.addComponent(customerInfoLabel)
+								.addComponent(customerInfoText)
+								)
+						.addComponent(confirmScrollContainer)
+						)
+				.addComponent(confirmOrderTotalLabel)
+				.addComponent(confirmOrderButton)
+				);
+		topLevelScreen.add(confirmOrderPanel, Screen.CONFIRM_ORDER.getName());
+							
 		switchScreen(Screen.STORE_SIGNIN);
 	}
 	
@@ -373,7 +421,9 @@ public class Cashier extends JFrame implements ActionListener {
 			Consists c = (Consists)r;
 			total += Math.round(c.getQuantity() * c.getPrice() * 100.0) / 100.0;
 		}
-		checkoutTotalLabel.setText("$" + String.format("%10.2f", total));
+		String result = "$" + String.format("%10.2f", total);
+		checkoutTotalLabel.setText(result);
+		confirmOrderTotalLabel.setText(result);
 	}
 	
 	private void signOut() {
@@ -478,10 +528,17 @@ public class Cashier extends JFrame implements ActionListener {
 			int customerIndex = customerSelectionTable.getSelectedRow();
 			if(customerIndex >= 0) {
 				customer = (Customer)customerList.get(customerIndex);
-				switchScreen(Screen.ITEM_SCAN);
+				customerInfoText.setText(customer.toString());
+				updateTable(confirmOrderTable, checkoutList, CHECKOUT_COLS);
+				switchScreen(Screen.CONFIRM_ORDER);
 			} else {
 				// TODO display message to gui
 			}
+		} else if(src.equals(confirmOrderButton)) {
+			//TODO complete transaction
+			resetItemScan();
+			resetCustomerSignIn();
+			switchScreen(Screen.ITEM_SCAN);
 		} else if(src.equals(signOutButton)) {
 			boolean isConfirmed = (JOptionPane.showConfirmDialog(this,
 					"Any incomplete transactions will be lost upon signing out.\n"
@@ -495,6 +552,9 @@ public class Cashier extends JFrame implements ActionListener {
 			switch(currentScreen) {
 			case CUSTOMER_SIGNIN:
 				switchScreen(Screen.ITEM_SCAN);
+				break;
+			case CONFIRM_ORDER:
+				switchScreen(Screen.CUSTOMER_SIGNIN);
 				break;
 			default:
 				;

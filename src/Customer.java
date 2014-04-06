@@ -141,7 +141,41 @@ public class Customer extends Relation {
 			}
 			builder.append(attributes.get(LAST_NAME));
 			added++;
-		}		
+		}
+		if(attributes.get(STREET) != null) {
+			if(added > 0) {
+				builder.append("\n");
+			}
+			builder.append(attributes.get(STREET));
+			added++;
+		}
+		if(attributes.get(CITY) != null) {
+			if(added > 0) {
+				builder.append("\n");
+			}
+			builder.append(attributes.get(CITY));
+			if(attributes.get(STATE) != null) {
+				builder.append(", " + attributes.get(STATE));
+				if(attributes.get(ZIP) != null) {
+					builder.append(" " + attributes.get(ZIP));
+				}
+			}
+			added++;
+		}
+		if(attributes.get(PHONE) != null) {
+			if(added > 0) {
+				builder.append("\n");
+			}
+			builder.append(attributes.get(PHONE));
+			added++;
+		}
+		if(attributes.get(EMAIL) != null) {
+			if(added > 0) {
+				builder.append("\n");
+			}
+			builder.append(attributes.get(EMAIL));
+			added++;
+		}
 		return builder.toString();
 	}
 	
