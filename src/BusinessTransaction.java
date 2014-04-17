@@ -22,12 +22,10 @@ public class BusinessTransaction {
 			conn.setAutoCommit(false);
 			int orderNo = -1;
 			Statement stmt = conn.createStatement();
-			System.out.println(generateOrdersUpdate(consistsItems));
 			stmt.executeUpdate(generateOrdersUpdate(consistsItems));
 			ResultSet result = stmt.executeQuery("select last_insert_id();");
 			if(result.next()) {
 				orderNo = result.getInt(1);
-				System.out.println("order number: "+ orderNo);
 			} else {
 				throw new SQLException("Could not auto increment");
 			}

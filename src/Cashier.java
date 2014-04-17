@@ -673,8 +673,10 @@ public class Cashier extends JFrame implements ActionListener {
 				customer = new Customer(null, newCustFNText.getText(), newCustLNText.getText(), newCustPhoneText.getText(),
 						newCustEmailText.getText(), newCustStreetText.getText(), newCustCityText.getText(), newCustStateText.getText(),
 						newCustZipText.getText());
-				customer.insert();
-				System.out.println(customer.toString());
+				Connection conn = DatabaseUtils.openConnection();
+				customer.insert(conn);
+				DatabaseUtils.closeConnection(conn);
+//				System.out.println(customer.toString());
 				customerFNText.setText(newCustFNText.getText());
 				customerLNText.setText(newCustLNText.getText());
 				resetNewCustomer();

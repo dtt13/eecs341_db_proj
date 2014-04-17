@@ -2,7 +2,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class Customer extends Relation {
@@ -123,15 +125,45 @@ public class Customer extends Relation {
 		return cList;
 	}
 	
-	public void insert() { // TODO
+	public void insert(Connection conn) {
 		if(attributes.get(CID) != null) {
-			update();
+			update(conn);
 		} else {
-			
+			try {
+				// get the maximum cid and set attribute
+				Statement stmt = conn.createStatement();
+				ResultSet result = stmt.executeQuery("select max(cast(c.cid as unsigned)) from customers c;");
+				if(result.next()) {
+					attributes.put(CID, new Integer(result.getInt(1) + 1).toString());
+				} else {
+					throw new SQLException("Could not get the maximum");
+				}
+				// execute SQL
+				StringBuilder atts = new StringBuilder("`");
+				StringBuilder vals = new StringBuilder("'");
+				Iterator<String> it = attributes.keySet().iterator();
+				while(it.hasNext()) {
+					String att = it.next();
+					atts.append(att);
+					vals.append(attributes.get(att));
+					if(it.hasNext()) {
+						atts.append("`, `");
+						vals.append("', '");
+					} else {
+						atts.append("`");
+						vals.append("'");
+					}
+				}
+				System.out.println("insert into customers(" + atts.toString() + ") values (" + vals.toString() + ");");
+				stmt.executeUpdate("insert into customers(" + atts.toString() + ") values (" + vals.toString() + ");");
+				System.out.println("new customer successful");
+			} catch (SQLException e) {
+				System.err.println(e.getMessage());
+			}
 		}
 	}
 	
-	public void update() { // TODO
+	public void update(Connection conn) { // TODO
 		
 	}
 	
