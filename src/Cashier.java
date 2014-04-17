@@ -31,10 +31,11 @@ public class Cashier extends JFrame implements ActionListener {
 	private static final String[] CHECKOUT_COLS = {"upc", "quantity", "price"};
 	private static final String[] CUSTOMER_SELECTION_COLS = {"first_name", "last_name", "phone", "email"};
 	
-	private static enum Screen{
+	private static enum Screen {
 		STORE_SIGNIN("Store Sign-In"),
 		ITEM_SCAN("Item Scan"),
 		CUSTOMER_SIGNIN("Customer Sign-In"),
+		NEW_CUSTOMER("New Customer"),
 		CONFIRM_ORDER("Confirm Order");
 		private String name;
 		private Screen(String name) { this.name = name; }		
@@ -97,7 +98,28 @@ public class Cashier extends JFrame implements ActionListener {
 	private JTextField customerLNText;
 	private JTable customerSelectionTable;
 	private JButton customerFindButton;
+	private JButton customerNewButton;
 	private JButton customerSelectionButton;
+	
+	// new customer screen
+	private JPanel newCustomerPanel;
+	private JLabel newCustFNLabel;
+	private JLabel newCustLNLabel;
+	private JLabel newCustPhoneLabel;
+	private JLabel newCustEmailLabel;
+	private JLabel newCustStreetLabel;
+	private JLabel newCustCityLabel;
+	private JLabel newCustStateLabel;
+	private JLabel newCustZipLabel;
+	private JTextField newCustFNText;
+	private JTextField newCustLNText;
+	private JTextField newCustPhoneText;
+	private JTextField newCustEmailText;
+	private JTextField newCustStreetText;
+	private JTextField newCustCityText;
+	private JTextField newCustStateText;
+	private JTextField newCustZipText;
+	private JButton newCustomerSelectionButton;
 	
 	// confirm order screen
 	private JPanel confirmOrderPanel;
@@ -214,7 +236,7 @@ public class Cashier extends JFrame implements ActionListener {
 		addItemButton.addActionListener(this);
 		checkoutTable = createTable(CHECKOUT_COLS);
 		JScrollPane checkoutScrollContainer = new JScrollPane(checkoutTable);
-		checkoutTotalLabel = new JLabel("$  0.00");
+		checkoutTotalLabel = new JLabel();
 		removeItemButton = new JButton("<<Remove");
 		removeItemButton.addActionListener(this);
 		checkoutButton = new JButton("Checkout");
@@ -285,6 +307,8 @@ public class Cashier extends JFrame implements ActionListener {
 		customerLNText = new JTextField();
 		customerFindButton = new JButton("Find");
 		customerFindButton.addActionListener(this);
+		customerNewButton = new JButton("New");
+		customerNewButton.addActionListener(this);
 		customerSelectionButton = new JButton("OK");
 		customerSelectionButton.addActionListener(this);
 		customerSelectionTable = createTable(CUSTOMER_SELECTION_COLS);
@@ -300,7 +324,10 @@ public class Cashier extends JFrame implements ActionListener {
 								.addComponent(customerLNLabel)
 								.addComponent(customerLNText)
 								)	
-						.addComponent(customerFindButton)
+						.addGroup(groupLayout.createSequentialGroup()
+								.addComponent(customerNewButton)
+								.addComponent(customerFindButton)
+								)
 						)
 				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
 						.addComponent(customerScrollContainer)
@@ -319,13 +346,102 @@ public class Cashier extends JFrame implements ActionListener {
 										.addComponent(customerLNLabel)
 										.addComponent(customerLNText)
 										)
-								.addComponent(customerFindButton)
+								.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+										.addComponent(customerNewButton)
+										.addComponent(customerFindButton)
+										)
 								)
 						.addComponent(customerScrollContainer)
 						)
 				.addComponent(customerSelectionButton)
 				);
 		topLevelScreen.add(customerSignInPanel, Screen.CUSTOMER_SIGNIN.getName());
+		
+		// new customer screen
+		newCustomerPanel = new JPanel();
+		groupLayout = new GroupLayout(newCustomerPanel);
+		newCustomerPanel.setLayout(groupLayout);
+		groupLayout.setAutoCreateGaps(true);
+		groupLayout.setAutoCreateContainerGaps(true);
+		newCustFNLabel = new JLabel("First Name");
+		newCustLNLabel = new JLabel("Last Name");
+		newCustPhoneLabel = new JLabel("Phone");
+		newCustEmailLabel = new JLabel("Email");
+		newCustStreetLabel = new JLabel("Street");
+		newCustCityLabel = new JLabel("City");
+		newCustStateLabel = new JLabel("State");
+		newCustZipLabel = new JLabel("Zip");
+		newCustFNText = new JTextField();
+		newCustLNText = new JTextField();
+		newCustPhoneText = new JTextField();
+		newCustEmailText = new JTextField();
+		newCustStreetText = new JTextField();
+		newCustCityText = new JTextField();
+		newCustStateText = new JTextField();
+		newCustZipText = new JTextField();
+		newCustomerSelectionButton = new JButton("OK");
+		newCustomerSelectionButton.addActionListener(this);
+		groupLayout.setHorizontalGroup(
+				groupLayout.createSequentialGroup()
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+						.addComponent(newCustFNLabel)
+						.addComponent(newCustLNLabel)
+						.addComponent(newCustPhoneLabel)
+						.addComponent(newCustEmailLabel)
+						.addComponent(newCustStreetLabel)
+						.addComponent(newCustCityLabel)
+						.addComponent(newCustStateLabel)
+						.addComponent(newCustZipLabel)
+						)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+						.addComponent(newCustFNText)
+						.addComponent(newCustLNText)
+						.addComponent(newCustPhoneText)
+						.addComponent(newCustEmailText)
+						.addComponent(newCustStreetText)
+						.addComponent(newCustCityText)
+						.addComponent(newCustStateText)
+						.addComponent(newCustZipText)
+						.addComponent(newCustomerSelectionButton)
+						)
+				);
+		groupLayout.setVerticalGroup(
+				groupLayout.createSequentialGroup()
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(newCustFNLabel)
+						.addComponent(newCustFNText)
+						)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(newCustLNLabel)
+						.addComponent(newCustLNText)
+						)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(newCustPhoneLabel)
+						.addComponent(newCustPhoneText)
+						)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(newCustEmailLabel)
+						.addComponent(newCustEmailText)
+						)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(newCustStreetLabel)
+						.addComponent(newCustStreetText)
+						)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(newCustCityLabel)
+						.addComponent(newCustCityText)
+						)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(newCustStateLabel)
+						.addComponent(newCustStateText)
+						)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(newCustZipLabel)
+						.addComponent(newCustZipText)
+						)
+				.addComponent(newCustomerSelectionButton)
+				);
+		topLevelScreen.add(newCustomerPanel, Screen.NEW_CUSTOMER.getName());
 		
 		// confirm order screen
 		confirmOrderPanel = new JPanel();
@@ -334,7 +450,8 @@ public class Cashier extends JFrame implements ActionListener {
 		groupLayout.setAutoCreateGaps(true);
 		groupLayout.setAutoCreateContainerGaps(true);
 		customerInfoLabel = new JLabel("Customer Info");
-		confirmOrderTotalLabel = new JLabel(" $  0.00");
+		confirmOrderTotalLabel = new JLabel();
+		updateTotal();
 		customerInfoText = new JTextArea();
 		customerInfoText.setEditable(false);
 		confirmOrderTable = createTable(CHECKOUT_COLS);
@@ -430,6 +547,7 @@ public class Cashier extends JFrame implements ActionListener {
 		resetStoreSignIn();
 		resetItemScan();
 		resetCustomerSignIn();
+		resetNewCustomer();
 		switchScreen(Screen.STORE_SIGNIN);
 	}
 	
@@ -446,6 +564,7 @@ public class Cashier extends JFrame implements ActionListener {
 		product = null;
 		productList = null;
 		checkoutList = new LinkedList<Relation>();
+		updateTotal();
 		clearTable(itemSearchTable);
 		clearTable(checkoutTable);
 		itemSearchUpcText.setText("");
@@ -459,6 +578,17 @@ public class Cashier extends JFrame implements ActionListener {
 		clearTable(customerSelectionTable);
 		customerFNText.setText("");
 		customerLNText.setText("");
+	}
+	
+	private void resetNewCustomer() {
+		newCustFNText.setText("");
+		newCustLNText.setText("");
+		newCustPhoneText.setText("");
+		newCustEmailText.setText("");
+		newCustStreetText.setText("");
+		newCustCityText.setText("");
+		newCustStateText.setText("");
+		newCustZipText.setText("");
 	}
 
 	@Override
@@ -524,6 +654,8 @@ public class Cashier extends JFrame implements ActionListener {
 			customerList = c.find(conn);
 			DatabaseUtils.closeConnection(conn);
 			updateTable(customerSelectionTable, customerList, CUSTOMER_SELECTION_COLS);
+		} else if(src.equals(customerNewButton)) {
+			switchScreen(Screen.NEW_CUSTOMER);
 		} else if(src.equals(customerSelectionButton)) {
 			int customerIndex = customerSelectionTable.getSelectedRow();
 			if(customerIndex >= 0) {
@@ -534,8 +666,24 @@ public class Cashier extends JFrame implements ActionListener {
 			} else {
 				// TODO display message to gui
 			}
+		} else if(src.equals(newCustomerSelectionButton)) {
+			if(!(newCustFNText.getText().trim().isEmpty() && newCustLNText.getText().trim().isEmpty() && newCustPhoneText.getText().trim().isEmpty()
+					&& newCustEmailText.getText().trim().isEmpty() && newCustStreetText.getText().trim().isEmpty() && newCustCityText.getText().trim().isEmpty()
+					&& newCustStateText.getText().trim().isEmpty() && newCustZipText.getText().trim().isEmpty())) {
+				customer = new Customer(null, newCustFNText.getText(), newCustLNText.getText(), newCustPhoneText.getText(),
+						newCustEmailText.getText(), newCustStreetText.getText(), newCustCityText.getText(), newCustStateText.getText(),
+						newCustZipText.getText());
+				customer.insert();
+				System.out.println(customer.toString());
+				customerFNText.setText(newCustFNText.getText());
+				customerLNText.setText(newCustLNText.getText());
+				resetNewCustomer();
+				customerInfoText.setText(customer.toString());
+				updateTable(confirmOrderTable, checkoutList, CHECKOUT_COLS);
+				switchScreen(Screen.CONFIRM_ORDER);
+			}
 		} else if(src.equals(confirmOrderButton)) {
-			//TODO complete transaction
+			BusinessTransaction.checkoutItems(store, customer, checkoutList);
 			resetItemScan();
 			resetCustomerSignIn();
 			switchScreen(Screen.ITEM_SCAN);
@@ -553,6 +701,9 @@ public class Cashier extends JFrame implements ActionListener {
 			case CUSTOMER_SIGNIN:
 				switchScreen(Screen.ITEM_SCAN);
 				break;
+			case NEW_CUSTOMER:
+				switchScreen(Screen.CUSTOMER_SIGNIN);
+				break;
 			case CONFIRM_ORDER:
 				switchScreen(Screen.CUSTOMER_SIGNIN);
 				break;
@@ -562,16 +713,7 @@ public class Cashier extends JFrame implements ActionListener {
 		}
 	}
 
-	public static void main(String[] args) {
-		setLookAndFeel();
-		Cashier c = new Cashier();
-		c.setSize(1000, 700);
-		c.setTitle("Cashier Application");
-		c.setDefaultCloseOperation(EXIT_ON_CLOSE);
-		c.setVisible(true);
-	}
-	
-	public static void setLookAndFeel() {
+	private static void setLookAndFeel() {
 		Enumeration<Object> keys = UIManager.getDefaults().keys();
 		while (keys.hasMoreElements()) {
 			Object key = keys.nextElement();
@@ -580,5 +722,14 @@ public class Cashier extends JFrame implements ActionListener {
 				UIManager.put (key, new FontUIResource("Arial Black", Font.PLAIN, 16));
 			}
 		} 
+	}
+
+	public static void main(String[] args) {
+		setLookAndFeel();
+		Cashier c = new Cashier();
+		c.setSize(1000, 700);
+		c.setTitle("Cashier Application");
+		c.setDefaultCloseOperation(EXIT_ON_CLOSE);
+		c.setVisible(true);
 	}
 }

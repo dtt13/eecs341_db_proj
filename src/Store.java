@@ -39,7 +39,7 @@ public class Store extends Relation {
 			attributes.put(SID, sid);
 		}
 		if(phone != null && (phone = phone.trim()).length() > 0) {
-			attributes.put(PHONE, phone);
+			attributes.put(PHONE, deformatPhone(phone));
 		}
 		if(street != null && (street = street.trim()).length() > 0) {
 			attributes.put(STREET, street);
@@ -81,7 +81,7 @@ public class Store extends Relation {
 	}
 	
 	public String getPhone() {
-		return (String)attributes.get(PHONE);
+		return formatPhone((String)attributes.get(PHONE));
 	}
 	
 	public String getStreet() {
@@ -105,10 +105,6 @@ public class Store extends Relation {
 				(String)attributes.get(THUR),
 				(String)attributes.get(FRI),
 				(String)attributes.get(SAT)};
-	}
-	
-	public int getNumberOfAttributes() {
-		return attributes.size();
 	}
 	
 	public List<Relation> find(Connection conn) {

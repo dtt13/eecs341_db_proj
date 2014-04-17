@@ -51,10 +51,6 @@ public class Product extends Relation {
 		return(Integer)attributes.get(QUANTITY);
 	}
 	
-	public int getNumberOfAttributes() {
-		return attributes.size();
-	}
-	
 	public List<Relation> find(Connection conn, Store store) {
 		// generate sql expression
 		StringBuilder sql  = new StringBuilder("select p.`upc`, p.`pname`, p.`brand`, p.`package_quantity` "

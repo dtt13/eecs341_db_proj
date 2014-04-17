@@ -35,7 +35,7 @@ public class Customer extends Relation {
 			attributes.put(LAST_NAME, lastName);
 		}
 		if(phone != null && (phone = phone.trim()).length() > 0) {
-			attributes.put(PHONE, phone);
+			attributes.put(PHONE, deformatPhone(phone));
 		}
 		if(email != null && (email = email.trim()).length() > 0) {
 			attributes.put(EMAIL, email);
@@ -67,7 +67,7 @@ public class Customer extends Relation {
 	}
 	
 	public String getPhone() {
-		return (String)attributes.get(PHONE);
+		return formatPhone((String)attributes.get(PHONE));
 	}
 	
 	public String getEmail() {
@@ -88,10 +88,6 @@ public class Customer extends Relation {
 	
 	public String getZip() {
 		return (String)attributes.get(ZIP);
-	}
-	
-	public int getNumberOfAttributes() {
-		return attributes.size();
 	}
 	
 	public List<Relation> find(Connection conn) {
@@ -125,6 +121,18 @@ public class Customer extends Relation {
 			cList = null;
 		}
 		return cList;
+	}
+	
+	public void insert() { // TODO
+		if(attributes.get(CID) != null) {
+			update();
+		} else {
+			
+		}
+	}
+	
+	public void update() { // TODO
+		
 	}
 	
 	@Override
@@ -166,7 +174,7 @@ public class Customer extends Relation {
 			if(added > 0) {
 				builder.append("\n");
 			}
-			builder.append(attributes.get(PHONE));
+			builder.append(formatPhone((String)attributes.get(PHONE)));
 			added++;
 		}
 		if(attributes.get(EMAIL) != null) {
@@ -178,21 +186,4 @@ public class Customer extends Relation {
 		}
 		return builder.toString();
 	}
-	
-//	private static String formatPhone(String phoneNum) {
-//		StringBuilder builder = new StringBuilder();
-//		int index = 0;
-//		switch(phoneNum.length()) {
-//		case 11:
-//			builder.append(phoneNum.charAt(index++));
-//			builder.append(" ");
-//		case 10:
-//			builder.append(phoneNum.substring(index, index + 3));
-//			index += 3;
-//			builder.append("-");
-//		default:
-//			builder.append(phoneNum.substring(index, index + 3) + "-" + phoneNum.substring(index + 3, index + 7));
-//		}
-//		return builder.toString();
-//	}
 }
