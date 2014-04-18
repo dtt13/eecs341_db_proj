@@ -22,8 +22,6 @@ public class Store extends Relation {
 	private static final String FRI = "fri_hours";
 	private static final String SAT = "sat_hours";
 	
-//	HashMap<String, Object> attributes = new HashMap<String, Object>();
-	
 	public Store(ResultSet set) throws SQLException {
 		this(set.getString(SID), set.getString(PHONE), set.getString(STREET),
 				set.getString(CITY), set.getString(STATE), set.getString(ZIP),

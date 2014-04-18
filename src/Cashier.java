@@ -30,10 +30,12 @@ public class Cashier extends JFrame implements ActionListener {
 	private static final String[] ITEM_SEARCH_COLS = {"upc", "pname", "brand", "package_quantity"};
 	private static final String[] CHECKOUT_COLS = {"upc", "quantity", "price"};
 	private static final String[] CUSTOMER_SELECTION_COLS = {"first_name", "last_name", "phone", "email"};
+	private static final String[] STOCK_CHECK_COLS = {"vid", "upc", "cost", "quantity", "order_date", "recv_date"};
 	
 	private static enum Screen {
 		STORE_SIGNIN("Store Sign-In"),
 		ITEM_SCAN("Item Scan"),
+		STOCK_CHECK("Stock Check"),
 		CUSTOMER_SIGNIN("Customer Sign-In"),
 		NEW_CUSTOMER("New Customer"),
 		CONFIRM_ORDER("Confirm Order");
@@ -48,6 +50,8 @@ public class Cashier extends JFrame implements ActionListener {
 	List<Relation> storeList = null;
 	List<Relation> productList = null;
 	List<Relation> customerList = null;
+	List<Relation> pendingSupplyList = null;
+	List<Relation> recentSupplyList = null;
 	List<Relation> checkoutList = new LinkedList<Relation>();
 	
 	Store store = null;
@@ -84,11 +88,23 @@ public class Cashier extends JFrame implements ActionListener {
 	private JTextField itemSearchBrandText;
 	private JButton itemSearchButton;
 	private JButton addItemButton;
-	private JTable itemSearchTable;
+	private JButton checkStockButton;
 	private JButton removeItemButton;
 	private JButton checkoutButton;
+	private JTable itemSearchTable;
 	private JTable checkoutTable;
 	private JLabel checkoutTotalLabel;
+	
+	// stock check screen
+	private JPanel stockCheckPanel;
+	private JLabel stockItemLabel;
+	private JLabel stockAmountLabel;
+	private JButton placeSupplyOrderButton;
+	private JButton checkInSupplyButton;
+	private JLabel pendingSupplyLabel;
+	private JLabel recentSupplyLabel;
+	private JTable pendingSupplyOrders;
+	private JTable recentSupplyOrders;
 	
 	// customer sign-in screen
 	private JPanel customerSignInPanel;
@@ -234,6 +250,8 @@ public class Cashier extends JFrame implements ActionListener {
 		JScrollPane searchScrollContainer = new JScrollPane(itemSearchTable);
 		addItemButton = new JButton("Add>>");
 		addItemButton.addActionListener(this);
+		checkStockButton = new JButton("Check Stock");
+		checkStockButton.addActionListener(this);
 		checkoutTable = createTable(CHECKOUT_COLS);
 		JScrollPane checkoutScrollContainer = new JScrollPane(checkoutTable);
 		checkoutTotalLabel = new JLabel();
@@ -258,7 +276,10 @@ public class Cashier extends JFrame implements ActionListener {
 								)		
 						.addComponent(itemSearchButton)
 						.addComponent(searchScrollContainer)
-						.addComponent(addItemButton)
+						.addGroup(groupLayout.createSequentialGroup()
+								.addComponent(checkStockButton)
+								.addComponent(addItemButton)
+								)	
 						)
 				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
 						.addComponent(checkoutScrollContainer)
@@ -288,12 +309,71 @@ public class Cashier extends JFrame implements ActionListener {
 						)
 				.addComponent(checkoutTotalLabel)
 				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(checkStockButton)
 						.addComponent(addItemButton)
 						.addComponent(removeItemButton)
 						)
 				.addComponent(checkoutButton)
 				);
 		topLevelScreen.add(itemScanPanel, Screen.ITEM_SCAN.getName());
+		
+		// stock check screen
+		stockCheckPanel = new JPanel();
+		groupLayout = new GroupLayout(stockCheckPanel);
+		stockCheckPanel.setLayout(groupLayout);
+		groupLayout.setAutoCreateGaps(true);
+		groupLayout.setAutoCreateContainerGaps(true);
+		stockItemLabel = new JLabel();
+		stockAmountLabel = new JLabel();
+		placeSupplyOrderButton = new JButton("Place Order");
+		placeSupplyOrderButton.addActionListener(this);
+		checkInSupplyButton = new JButton("Check In Order");
+		checkInSupplyButton.addActionListener(this);
+		pendingSupplyLabel = new JLabel("Pending Supply Orders");
+		recentSupplyLabel = new JLabel("Recent Supply Orders");
+		pendingSupplyOrders = createTable(STOCK_CHECK_COLS);
+		JScrollPane pendingContainer = new JScrollPane(pendingSupplyOrders);
+		recentSupplyOrders = createTable(STOCK_CHECK_COLS);
+		JScrollPane recentContainer = new JScrollPane(recentSupplyOrders);
+		groupLayout.setHorizontalGroup(
+				groupLayout.createSequentialGroup()
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+						.addComponent(stockItemLabel)
+						.addComponent(stockAmountLabel)
+						.addComponent(recentSupplyLabel)
+						.addGroup(groupLayout.createSequentialGroup()
+								.addComponent(recentContainer)
+								)
+						)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+						.addGroup(groupLayout.createSequentialGroup()
+								.addComponent(placeSupplyOrderButton)
+								.addComponent(checkInSupplyButton)
+								)
+						.addComponent(pendingSupplyLabel)
+						.addGroup(groupLayout.createSequentialGroup()
+								.addComponent(pendingContainer)
+								)
+						)
+				);
+		groupLayout.setVerticalGroup(
+				groupLayout.createSequentialGroup()
+				.addComponent(stockItemLabel)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(stockAmountLabel)
+						.addComponent(placeSupplyOrderButton)
+						.addComponent(checkInSupplyButton)
+						)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(recentSupplyLabel)
+						.addComponent(pendingSupplyLabel)
+						)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(recentContainer)
+						.addComponent(pendingContainer)
+						)
+				);
+		topLevelScreen.add(stockCheckPanel, Screen.STOCK_CHECK.getName());
 		
 		// customer sign-in screen
 		customerSignInPanel = new JPanel();
@@ -631,6 +711,21 @@ public class Cashier extends JFrame implements ActionListener {
 				updateTable(checkoutTable, checkoutList, CHECKOUT_COLS);
 				updateTotal();
 			}
+		} else if(src.equals(checkStockButton)) {
+			int productIndex = itemSearchTable.getSelectedRow();
+			if(productIndex >= 0) {
+				product = (Product)productList.get(productIndex);
+				Connection conn = DatabaseUtils.openConnection();
+				int stock = product.findStock(conn, store);
+				pendingSupplyList = product.findPendingSupplyOrders(conn, store);
+				recentSupplyList = product.findRecentSupplyOrders(conn, store);
+				DatabaseUtils.closeConnection(conn);
+				stockItemLabel.setText(product.getPname());
+				stockAmountLabel.setText("Current Stock:  " + stock);
+				updateTable(pendingSupplyOrders, pendingSupplyList, STOCK_CHECK_COLS);
+				updateTable(recentSupplyOrders, recentSupplyList, STOCK_CHECK_COLS);
+				switchScreen(Screen.STOCK_CHECK);
+			}
 		} else if(src.equals(removeItemButton)) {
 			int checkoutIndex = checkoutTable.getSelectedRow();
 			if(checkoutIndex >= 0) {
@@ -646,7 +741,25 @@ public class Cashier extends JFrame implements ActionListener {
 				updateTotal();
 			}
 		} else if(src.equals(checkoutButton)) {
-			switchScreen(Screen.CUSTOMER_SIGNIN);
+			if(!checkoutList.isEmpty()) {
+				switchScreen(Screen.CUSTOMER_SIGNIN);
+			}
+		} else if(src.equals(placeSupplyOrderButton)) {
+			// TODO
+		} else if(src.equals(checkInSupplyButton)) {
+			int pendingIndex = pendingSupplyOrders.getSelectedRow();
+			if(pendingIndex >= 0) {
+				Supply supply = (Supply)pendingSupplyList.get(pendingIndex);
+				Connection conn = DatabaseUtils.openConnection();
+				supply.checkInOrder(conn);
+				int stock = product.findStock(conn, store);
+				pendingSupplyList = product.findPendingSupplyOrders(conn, store);
+				recentSupplyList = product.findRecentSupplyOrders(conn, store);
+				DatabaseUtils.closeConnection(conn);
+				stockAmountLabel.setText("Current Stock:  " + stock);
+				updateTable(pendingSupplyOrders, pendingSupplyList, STOCK_CHECK_COLS);
+				updateTable(recentSupplyOrders, recentSupplyList, STOCK_CHECK_COLS);
+			}
 		} else if(src.equals(customerFindButton)) {
 			Customer c = new Customer(null, customerFNText.getText(), customerLNText.getText(),
 					null, null, null, null, null, null);
@@ -700,12 +813,11 @@ public class Cashier extends JFrame implements ActionListener {
 			}
 		} else if(src.equals(backButton)) {
 			switch(currentScreen) {
+			case STOCK_CHECK:
 			case CUSTOMER_SIGNIN:
 				switchScreen(Screen.ITEM_SCAN);
 				break;
 			case NEW_CUSTOMER:
-				switchScreen(Screen.CUSTOMER_SIGNIN);
-				break;
 			case CONFIRM_ORDER:
 				switchScreen(Screen.CUSTOMER_SIGNIN);
 				break;

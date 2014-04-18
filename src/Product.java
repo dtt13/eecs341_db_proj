@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -84,35 +85,69 @@ public class Product extends Relation {
 		return pList;
 	}
 	
-	public Double findPrice(Connection conn, Store store) {
+	public Integer findStock(Connection conn, Store store) {
 		try {
-			Statement findPrice = conn.createStatement();
-			ResultSet result = findPrice.executeQuery("select s.`price` "
+			Statement findStock = conn.createStatement();
+			ResultSet result = findStock.executeQuery("select s.`quantity` "
 					+ "from stock s where s.`upc`='" + getUpc() + "' and s.`sid`='" + store.getSid() + "';");
-			while(result.next()) {
-				return result.getDouble(1);
+			if(result.next()) {
+				return result.getInt(1);
+			} else {
+				throw new SQLException("Could not get stock");
 			}
 		} catch(SQLException e) {
-			System.err.println("Error getting price");
 			System.err.println(e.getMessage());
 		}
 		return null;
 	}
 	
-//	public static String[][] createTableData(List<Product> products, String[] columnNames) {
-//		String[][] output = new String[products.size()][columnNames.length];
-//		for(int productNum = 0; productNum < output.length; productNum++) {
-//			for(int columnNum = 0; columnNum < output[productNum].length; columnNum++) {
-//				String result = products.get(productNum).attributes.get(columnNames[columnNum]).toString();
-//				if(result != null) {
-//					output[productNum][columnNum] = result;
-//				} else {
-//					output[productNum][columnNum] = "";
-//				}
-//			}
-//		}
-//		return output;
-//	}
+	public Double findPrice(Connection conn, Store store) {
+		try {
+			Statement findPrice = conn.createStatement();
+			ResultSet result = findPrice.executeQuery("select s.`price` "
+					+ "from stock s where s.`upc`='" + getUpc() + "' and s.`sid`='" + store.getSid() + "';");
+			if(result.next()) {
+				return result.getDouble(1);
+			} else {
+				throw new SQLException("Could no get price");
+			}
+		} catch(SQLException e) {
+			System.err.println(e.getMessage());
+		}
+		return null;
+	}
+	
+	public List<Relation> findRecentSupplyOrders(Connection conn, Store store) {
+		try {
+			Statement findSupply = conn.createStatement();
+			ResultSet result = findSupply.executeQuery("select * from supply s where "
+					+ "s.`upc`='" + getUpc() + "' and s.`sid`='" + store.getSid() + "' and s.`recv_date` is not null order by s.`order_date` desc limit 10;");
+			List<Relation> sList =  new LinkedList<Relation>();
+			while(result.next()) {
+				sList.add(new Supply(result));
+			}
+			return sList;
+		} catch(SQLException e) {
+			System.err.println(e.getMessage());
+		}
+		return null;
+	}
+	
+	public List<Relation> findPendingSupplyOrders(Connection conn, Store store) {
+		try {
+			Statement findSupply = conn.createStatement();
+			ResultSet result = findSupply.executeQuery("select * from supply s where "
+					+ "s.`upc`='" + getUpc() + "' and s.`sid`='" + store.getSid() + "' and s.`recv_date` is null;");
+			List<Relation> sList =  new LinkedList<Relation>();
+			while(result.next()) {
+				sList.add(new Supply(result));
+			}
+			return sList;
+		} catch(SQLException e) {
+			System.err.println(e.getMessage());
+		}
+		return null;
+	}
 	
 	@Override
 	public String toString() {
@@ -138,5 +173,4 @@ public class Product extends Relation {
 		}
 		return builder.toString();
 	}
-	
 }

@@ -27,21 +27,20 @@ public class BusinessTransaction {
 			if(result.next()) {
 				orderNo = result.getInt(1);
 			} else {
-				throw new SQLException("Could not auto increment");
+				throw new SQLException("Could not auto increment order");
 			}
 			stmt.executeUpdate(generateConsistsUpdate(orderNo, consistsItems));
 			stmt.executeUpdate(generatePurchaseUpdate(orderNo, store, customer));
 			// TODO also subtract from inventory
 			conn.commit();
-			System.out.println("successfully commited order");
+//			System.out.println("successfully commited order");
 		} catch (SQLException e) {
 			System.err.println(e.getMessage());
 		} finally {
 			DatabaseUtils.closeConnection(conn);
 		}
 	}
-	
-	
+
 	private static String generateOrdersUpdate(List<Relation> consistsItems) {
 		return "insert into orders(`order_amount`) value (" + calculateTotalAmount(consistsItems) + ");";
 	}
