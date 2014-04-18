@@ -24,7 +24,7 @@ import javax.swing.plaf.FontUIResource;
 import javax.swing.table.DefaultTableModel;
 
 
-public class Cashier extends JFrame implements ActionListener {
+public class CashierApp extends JFrame implements ActionListener {
 	
 	private static final String[] STORE_SELECTION_COLS = {"sid", "street", "city", "state", "phone"};
 	private static final String[] ITEM_SEARCH_COLS = {"upc", "pname", "brand", "package_quantity"};
@@ -145,7 +145,7 @@ public class Cashier extends JFrame implements ActionListener {
 	private JTable confirmOrderTable;
 	private JButton confirmOrderButton;
 	
-	public Cashier() {
+	public CashierApp() {
 		this.setLayout(new BorderLayout());
 		GroupLayout groupLayout;
 		
@@ -840,7 +840,7 @@ public class Cashier extends JFrame implements ActionListener {
 
 	public static void main(String[] args) {
 		setLookAndFeel();
-		Cashier c = new Cashier();
+		CashierApp c = new CashierApp();
 		c.setSize(1000, 700);
 		c.setTitle("Cashier Application");
 		c.setDefaultCloseOperation(EXIT_ON_CLOSE);
