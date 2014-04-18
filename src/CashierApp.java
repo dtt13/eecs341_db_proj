@@ -36,6 +36,7 @@ public class CashierApp extends JFrame implements ActionListener {
 		STORE_SIGNIN("Store Sign-In"),
 		ITEM_SCAN("Item Scan"),
 		STOCK_CHECK("Stock Check"),
+		NEW_SUPPLY("New Supply Order"),
 		CUSTOMER_SIGNIN("Customer Sign-In"),
 		NEW_CUSTOMER("New Customer"),
 		CONFIRM_ORDER("Confirm Order");
@@ -105,6 +106,16 @@ public class CashierApp extends JFrame implements ActionListener {
 	private JLabel recentSupplyLabel;
 	private JTable pendingSupplyOrders;
 	private JTable recentSupplyOrders;
+	
+	// new supply screen
+	private JPanel newSupplyPanel;
+	private JLabel newSupplyVidLabel;
+	private JLabel newSupplyCostLabel;
+	private JLabel newSupplyQuantityLabel;
+	private JTextField newSupplyVidText;
+	private JTextField newSupplyCostText;
+	private JTextField newSupplyQuantityText;
+	private JButton newSupplyConfirmButton;
 	
 	// customer sign-in screen
 	private JPanel customerSignInPanel;
@@ -374,6 +385,52 @@ public class CashierApp extends JFrame implements ActionListener {
 						)
 				);
 		topLevelScreen.add(stockCheckPanel, Screen.STOCK_CHECK.getName());
+		
+		// new supply screen
+		newSupplyPanel = new JPanel();
+		groupLayout = new GroupLayout(newSupplyPanel);
+		newSupplyPanel.setLayout(groupLayout);
+		groupLayout.setAutoCreateGaps(true);
+		groupLayout.setAutoCreateContainerGaps(true);
+		newSupplyVidLabel = new JLabel("Vendor ID");
+		newSupplyCostLabel = new JLabel("Cost");
+		newSupplyQuantityLabel = new JLabel("Quantity");
+		newSupplyVidText = new JTextField();
+		newSupplyCostText = new JTextField();
+		newSupplyQuantityText = new JTextField();
+		newSupplyConfirmButton = new JButton("Confirm");
+		newSupplyConfirmButton.addActionListener(this);
+		groupLayout.setHorizontalGroup(
+				groupLayout.createSequentialGroup()
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+						.addComponent(newSupplyVidLabel)
+						.addComponent(newSupplyCostLabel)
+						.addComponent(newSupplyQuantityLabel)
+						)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+						.addComponent(newSupplyVidText)
+						.addComponent(newSupplyCostText)
+						.addComponent(newSupplyQuantityText)
+						.addComponent(newSupplyConfirmButton)
+						)
+				);
+		groupLayout.setVerticalGroup(
+				groupLayout.createSequentialGroup()
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(newSupplyVidLabel)
+						.addComponent(newSupplyVidText)
+						)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(newSupplyCostLabel)
+						.addComponent(newSupplyCostText)
+						)
+				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(newSupplyQuantityLabel)
+						.addComponent(newSupplyQuantityText)
+						)
+				.addComponent(newSupplyConfirmButton)
+				);
+		topLevelScreen.add(newSupplyPanel, Screen.NEW_SUPPLY.getName());
 		
 		// customer sign-in screen
 		customerSignInPanel = new JPanel();
@@ -745,7 +802,18 @@ public class CashierApp extends JFrame implements ActionListener {
 				switchScreen(Screen.CUSTOMER_SIGNIN);
 			}
 		} else if(src.equals(placeSupplyOrderButton)) {
-			// TODO
+			int recentIndex = recentSupplyOrders.getSelectedRow();
+			if(recentIndex >= 0) {
+				Supply supply = (Supply)recentSupplyList.get(recentIndex);
+				newSupplyVidText.setText(supply.getVid());
+				newSupplyCostText.setText(supply.getCost().toString());
+				newSupplyQuantityText.setText(supply.getQuantity().toString());
+			} else {
+				newSupplyVidText.setText("");
+				newSupplyCostText.setText("");
+				newSupplyQuantityText.setText("");
+			}
+			switchScreen(Screen.NEW_SUPPLY);
 		} else if(src.equals(checkInSupplyButton)) {
 			int pendingIndex = pendingSupplyOrders.getSelectedRow();
 			if(pendingIndex >= 0) {
@@ -759,6 +827,24 @@ public class CashierApp extends JFrame implements ActionListener {
 				stockAmountLabel.setText("Current Stock:  " + stock);
 				updateTable(pendingSupplyOrders, pendingSupplyList, STOCK_CHECK_COLS);
 				updateTable(recentSupplyOrders, recentSupplyList, STOCK_CHECK_COLS);
+			}
+		} else if(src.equals(newSupplyConfirmButton)) {
+			if(!newSupplyVidText.getText().trim().isEmpty() && !newSupplyCostText.getText().trim().isEmpty()
+					&& !newSupplyCostText.getText().trim().isEmpty()) {
+				Supply supply;
+				try{ 
+					supply = new Supply(newSupplyVidText.getText(), store.getSid(), product.getUpc(),
+							Double.valueOf(newSupplyCostText.getText()), Integer.valueOf(newSupplyQuantityText.getText()), null, null);
+				} catch(NumberFormatException ne) {
+					System.err.println(ne.getMessage());
+					return;
+				}
+				Connection conn = DatabaseUtils.openConnection();
+				supply.placeOrder(conn);
+				pendingSupplyList = product.findPendingSupplyOrders(conn, store);
+				DatabaseUtils.closeConnection(conn);
+				updateTable(pendingSupplyOrders, pendingSupplyList, STOCK_CHECK_COLS);
+				switchScreen(Screen.STOCK_CHECK);
 			}
 		} else if(src.equals(customerFindButton)) {
 			Customer c = new Customer(null, customerFNText.getText(), customerLNText.getText(),
@@ -776,8 +862,6 @@ public class CashierApp extends JFrame implements ActionListener {
 				customerInfoText.setText(customer.toString());
 				updateTable(confirmOrderTable, checkoutList, CHECKOUT_COLS);
 				switchScreen(Screen.CONFIRM_ORDER);
-			} else {
-				// TODO display message to gui
 			}
 		} else if(src.equals(newCustomerSelectionButton)) {
 			if(!(newCustFNText.getText().trim().isEmpty() && newCustLNText.getText().trim().isEmpty() && newCustPhoneText.getText().trim().isEmpty()
@@ -789,7 +873,6 @@ public class CashierApp extends JFrame implements ActionListener {
 				Connection conn = DatabaseUtils.openConnection();
 				customer.insert(conn);
 				DatabaseUtils.closeConnection(conn);
-//				System.out.println(customer.toString());
 				customerFNText.setText(newCustFNText.getText());
 				customerLNText.setText(newCustLNText.getText());
 				resetNewCustomer();
@@ -816,6 +899,9 @@ public class CashierApp extends JFrame implements ActionListener {
 			case STOCK_CHECK:
 			case CUSTOMER_SIGNIN:
 				switchScreen(Screen.ITEM_SCAN);
+				break;
+			case NEW_SUPPLY:
+				switchScreen(Screen.STOCK_CHECK);
 				break;
 			case NEW_CUSTOMER:
 			case CONFIRM_ORDER:
