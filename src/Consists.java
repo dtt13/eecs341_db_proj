@@ -7,8 +7,6 @@ public class Consists extends Relation {
 	private static final String PRICE = "price";
 	private static final String QUANTITY = "quantity";
 	
-//	HashMap<String, Object> attributes = new HashMap<String, Object>();
-	
 	public Consists(Product product, Double price) {
 		this(null, product.getUpc(), price, 1);
 	}

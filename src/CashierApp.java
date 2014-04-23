@@ -158,7 +158,7 @@ public class CashierApp extends JFrame implements ActionListener {
 	
 	public CashierApp() {
 		this.setLayout(new BorderLayout());
-		GroupLayout groupLayout;
+		GroupLayout gl;
 		
 		// top level panel
 		topLevelScreen = new JPanel(new CardLayout());
@@ -181,10 +181,10 @@ public class CashierApp extends JFrame implements ActionListener {
 		
 		// store sign-in screen
 		storeSignInPanel = new JPanel();
-		groupLayout = new GroupLayout(storeSignInPanel);
-		storeSignInPanel.setLayout(groupLayout);
-		groupLayout.setAutoCreateGaps(true);
-		groupLayout.setAutoCreateContainerGaps(true);
+		gl = new GroupLayout(storeSignInPanel);
+		storeSignInPanel.setLayout(gl);
+		gl.setAutoCreateGaps(true);
+		gl.setAutoCreateContainerGaps(true);
 		storeSidLabel = new JLabel("Store ID");
 		storeCityLabel = new JLabel("City");
 		storeStateLabel = new JLabel("State");
@@ -197,41 +197,41 @@ public class CashierApp extends JFrame implements ActionListener {
 		storeSelectionButton.addActionListener(this);
 		storeSelectionTable = createTable(STORE_SELECTION_COLS);
 		JScrollPane storeScrollContainer = new JScrollPane(storeSelectionTable);
-		groupLayout.setHorizontalGroup(
-				groupLayout.createSequentialGroup()
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-						.addGroup(groupLayout.createSequentialGroup()
+		gl.setHorizontalGroup(
+				gl.createSequentialGroup()
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.TRAILING)
+						.addGroup(gl.createSequentialGroup()
 								.addComponent(storeSidLabel)
 								.addComponent(storeSidText)
 								)
-						.addGroup(groupLayout.createSequentialGroup()
+						.addGroup(gl.createSequentialGroup()
 								.addComponent(storeCityLabel)
 								.addComponent(storeCityText)
 								)
-						.addGroup(groupLayout.createSequentialGroup()
+						.addGroup(gl.createSequentialGroup()
 								.addComponent(storeStateLabel)
 								.addComponent(storeStateText)
 								)		
 						.addComponent(storeFindButton)
 						)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.TRAILING)
 						.addComponent(storeScrollContainer)
 						.addComponent(storeSelectionButton)
 						)
 				);
-		groupLayout.setVerticalGroup(
-				groupLayout.createSequentialGroup()
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addGroup(groupLayout.createSequentialGroup()
-								.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+		gl.setVerticalGroup(
+				gl.createSequentialGroup()
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addGroup(gl.createSequentialGroup()
+								.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 										.addComponent(storeSidLabel)
 										.addComponent(storeSidText)
 										)
-								.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+								.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 										.addComponent(storeCityLabel)
 										.addComponent(storeCityText)
 										)
-								.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+								.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 										.addComponent(storeStateLabel)
 										.addComponent(storeStateText)
 										)
@@ -245,10 +245,10 @@ public class CashierApp extends JFrame implements ActionListener {
 		
 		// item scan screen
 		itemScanPanel = new JPanel(new BorderLayout());
-		groupLayout = new GroupLayout(itemScanPanel);
-		itemScanPanel.setLayout(groupLayout);
-		groupLayout.setAutoCreateGaps(true);
-		groupLayout.setAutoCreateContainerGaps(true);
+		gl = new GroupLayout(itemScanPanel);
+		itemScanPanel.setLayout(gl);
+		gl.setAutoCreateGaps(true);
+		gl.setAutoCreateContainerGaps(true);
 		upcLabel = new JLabel("UPC");
 		pnameLabel = new JLabel("Name");
 		brandLabel = new JLabel("Brand");
@@ -270,56 +270,56 @@ public class CashierApp extends JFrame implements ActionListener {
 		removeItemButton.addActionListener(this);
 		checkoutButton = new JButton("Checkout");
 		checkoutButton.addActionListener(this);
-		groupLayout.setHorizontalGroup(
-				groupLayout.createSequentialGroup()
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-						.addGroup(groupLayout.createSequentialGroup()
+		gl.setHorizontalGroup(
+				gl.createSequentialGroup()
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.TRAILING)
+						.addGroup(gl.createSequentialGroup()
 								.addComponent(upcLabel)
 								.addComponent(itemSearchUpcText)
 								)
-						.addGroup(groupLayout.createSequentialGroup()
+						.addGroup(gl.createSequentialGroup()
 								.addComponent(pnameLabel)
 								.addComponent(itemSearchPnameText)
 								)
-						.addGroup(groupLayout.createSequentialGroup()
+						.addGroup(gl.createSequentialGroup()
 								.addComponent(brandLabel)
 								.addComponent(itemSearchBrandText)
 								)		
 						.addComponent(itemSearchButton)
 						.addComponent(searchScrollContainer)
-						.addGroup(groupLayout.createSequentialGroup()
+						.addGroup(gl.createSequentialGroup()
 								.addComponent(checkStockButton)
 								.addComponent(addItemButton)
 								)	
 						)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.TRAILING)
 						.addComponent(checkoutScrollContainer)
 						.addComponent(checkoutTotalLabel)
 						.addComponent(removeItemButton)
 						.addComponent(checkoutButton)
 						)
 				);
-		groupLayout.setVerticalGroup(
-				groupLayout.createSequentialGroup()
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+		gl.setVerticalGroup(
+				gl.createSequentialGroup()
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 						.addComponent(upcLabel)
 						.addComponent(itemSearchUpcText)
 						)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 						.addComponent(pnameLabel)
 						.addComponent(itemSearchPnameText)
 						)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 						.addComponent(brandLabel)
 						.addComponent(itemSearchBrandText)
 						)
 				.addComponent(itemSearchButton)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.LEADING)
 						.addComponent(checkoutScrollContainer)
 						.addComponent(searchScrollContainer)
 						)
 				.addComponent(checkoutTotalLabel)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 						.addComponent(checkStockButton)
 						.addComponent(addItemButton)
 						.addComponent(removeItemButton)
@@ -330,10 +330,10 @@ public class CashierApp extends JFrame implements ActionListener {
 		
 		// stock check screen
 		stockCheckPanel = new JPanel();
-		groupLayout = new GroupLayout(stockCheckPanel);
-		stockCheckPanel.setLayout(groupLayout);
-		groupLayout.setAutoCreateGaps(true);
-		groupLayout.setAutoCreateContainerGaps(true);
+		gl = new GroupLayout(stockCheckPanel);
+		stockCheckPanel.setLayout(gl);
+		gl.setAutoCreateGaps(true);
+		gl.setAutoCreateContainerGaps(true);
 		stockItemLabel = new JLabel();
 		stockAmountLabel = new JLabel();
 		placeSupplyOrderButton = new JButton("Place Order");
@@ -346,40 +346,40 @@ public class CashierApp extends JFrame implements ActionListener {
 		JScrollPane pendingContainer = new JScrollPane(pendingSupplyOrders);
 		recentSupplyOrders = createTable(STOCK_CHECK_COLS);
 		JScrollPane recentContainer = new JScrollPane(recentSupplyOrders);
-		groupLayout.setHorizontalGroup(
-				groupLayout.createSequentialGroup()
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+		gl.setHorizontalGroup(
+				gl.createSequentialGroup()
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.LEADING)
 						.addComponent(stockItemLabel)
 						.addComponent(stockAmountLabel)
 						.addComponent(recentSupplyLabel)
-						.addGroup(groupLayout.createSequentialGroup()
+						.addGroup(gl.createSequentialGroup()
 								.addComponent(recentContainer)
 								)
 						)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-						.addGroup(groupLayout.createSequentialGroup()
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.LEADING)
+						.addGroup(gl.createSequentialGroup()
 								.addComponent(placeSupplyOrderButton)
 								.addComponent(checkInSupplyButton)
 								)
 						.addComponent(pendingSupplyLabel)
-						.addGroup(groupLayout.createSequentialGroup()
+						.addGroup(gl.createSequentialGroup()
 								.addComponent(pendingContainer)
 								)
 						)
 				);
-		groupLayout.setVerticalGroup(
-				groupLayout.createSequentialGroup()
+		gl.setVerticalGroup(
+				gl.createSequentialGroup()
 				.addComponent(stockItemLabel)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 						.addComponent(stockAmountLabel)
 						.addComponent(placeSupplyOrderButton)
 						.addComponent(checkInSupplyButton)
 						)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 						.addComponent(recentSupplyLabel)
 						.addComponent(pendingSupplyLabel)
 						)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 						.addComponent(recentContainer)
 						.addComponent(pendingContainer)
 						)
@@ -388,10 +388,10 @@ public class CashierApp extends JFrame implements ActionListener {
 		
 		// new supply screen
 		newSupplyPanel = new JPanel();
-		groupLayout = new GroupLayout(newSupplyPanel);
-		newSupplyPanel.setLayout(groupLayout);
-		groupLayout.setAutoCreateGaps(true);
-		groupLayout.setAutoCreateContainerGaps(true);
+		gl = new GroupLayout(newSupplyPanel);
+		newSupplyPanel.setLayout(gl);
+		gl.setAutoCreateGaps(true);
+		gl.setAutoCreateContainerGaps(true);
 		newSupplyVidLabel = new JLabel("Vendor ID");
 		newSupplyCostLabel = new JLabel("Cost");
 		newSupplyQuantityLabel = new JLabel("Quantity");
@@ -400,31 +400,31 @@ public class CashierApp extends JFrame implements ActionListener {
 		newSupplyQuantityText = new JTextField();
 		newSupplyConfirmButton = new JButton("Confirm");
 		newSupplyConfirmButton.addActionListener(this);
-		groupLayout.setHorizontalGroup(
-				groupLayout.createSequentialGroup()
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+		gl.setHorizontalGroup(
+				gl.createSequentialGroup()
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.TRAILING)
 						.addComponent(newSupplyVidLabel)
 						.addComponent(newSupplyCostLabel)
 						.addComponent(newSupplyQuantityLabel)
 						)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.TRAILING)
 						.addComponent(newSupplyVidText)
 						.addComponent(newSupplyCostText)
 						.addComponent(newSupplyQuantityText)
 						.addComponent(newSupplyConfirmButton)
 						)
 				);
-		groupLayout.setVerticalGroup(
-				groupLayout.createSequentialGroup()
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+		gl.setVerticalGroup(
+				gl.createSequentialGroup()
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 						.addComponent(newSupplyVidLabel)
 						.addComponent(newSupplyVidText)
 						)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 						.addComponent(newSupplyCostLabel)
 						.addComponent(newSupplyCostText)
 						)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 						.addComponent(newSupplyQuantityLabel)
 						.addComponent(newSupplyQuantityText)
 						)
@@ -434,10 +434,10 @@ public class CashierApp extends JFrame implements ActionListener {
 		
 		// customer sign-in screen
 		customerSignInPanel = new JPanel();
-		groupLayout = new GroupLayout(customerSignInPanel);
-		customerSignInPanel.setLayout(groupLayout);
-		groupLayout.setAutoCreateGaps(true);
-		groupLayout.setAutoCreateContainerGaps(true);
+		gl = new GroupLayout(customerSignInPanel);
+		customerSignInPanel.setLayout(gl);
+		gl.setAutoCreateGaps(true);
+		gl.setAutoCreateContainerGaps(true);
 		customerFNLabel = new JLabel("First Name");
 		customerLNLabel = new JLabel("Last Name");
 		customerFNText = new JTextField();
@@ -450,40 +450,40 @@ public class CashierApp extends JFrame implements ActionListener {
 		customerSelectionButton.addActionListener(this);
 		customerSelectionTable = createTable(CUSTOMER_SELECTION_COLS);
 		JScrollPane customerScrollContainer = new JScrollPane(customerSelectionTable);
-		groupLayout.setHorizontalGroup(
-				groupLayout.createSequentialGroup()
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-						.addGroup(groupLayout.createSequentialGroup()
+		gl.setHorizontalGroup(
+				gl.createSequentialGroup()
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.TRAILING)
+						.addGroup(gl.createSequentialGroup()
 								.addComponent(customerFNLabel)
 								.addComponent(customerFNText)
 								)
-						.addGroup(groupLayout.createSequentialGroup()
+						.addGroup(gl.createSequentialGroup()
 								.addComponent(customerLNLabel)
 								.addComponent(customerLNText)
 								)	
-						.addGroup(groupLayout.createSequentialGroup()
+						.addGroup(gl.createSequentialGroup()
 								.addComponent(customerNewButton)
 								.addComponent(customerFindButton)
 								)
 						)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.TRAILING)
 						.addComponent(customerScrollContainer)
 						.addComponent(customerSelectionButton)
 						)
 				);
-		groupLayout.setVerticalGroup(
-				groupLayout.createSequentialGroup()
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addGroup(groupLayout.createSequentialGroup()
-								.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+		gl.setVerticalGroup(
+				gl.createSequentialGroup()
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addGroup(gl.createSequentialGroup()
+								.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 										.addComponent(customerFNLabel)
 										.addComponent(customerFNText)
 										)
-								.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+								.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 										.addComponent(customerLNLabel)
 										.addComponent(customerLNText)
 										)
-								.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+								.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 										.addComponent(customerNewButton)
 										.addComponent(customerFindButton)
 										)
@@ -496,10 +496,10 @@ public class CashierApp extends JFrame implements ActionListener {
 		
 		// new customer screen
 		newCustomerPanel = new JPanel();
-		groupLayout = new GroupLayout(newCustomerPanel);
-		newCustomerPanel.setLayout(groupLayout);
-		groupLayout.setAutoCreateGaps(true);
-		groupLayout.setAutoCreateContainerGaps(true);
+		gl = new GroupLayout(newCustomerPanel);
+		newCustomerPanel.setLayout(gl);
+		gl.setAutoCreateGaps(true);
+		gl.setAutoCreateContainerGaps(true);
 		newCustFNLabel = new JLabel("First Name");
 		newCustLNLabel = new JLabel("Last Name");
 		newCustPhoneLabel = new JLabel("Phone");
@@ -518,9 +518,9 @@ public class CashierApp extends JFrame implements ActionListener {
 		newCustZipText = new JTextField();
 		newCustomerSelectionButton = new JButton("OK");
 		newCustomerSelectionButton.addActionListener(this);
-		groupLayout.setHorizontalGroup(
-				groupLayout.createSequentialGroup()
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+		gl.setHorizontalGroup(
+				gl.createSequentialGroup()
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.TRAILING)
 						.addComponent(newCustFNLabel)
 						.addComponent(newCustLNLabel)
 						.addComponent(newCustPhoneLabel)
@@ -530,7 +530,7 @@ public class CashierApp extends JFrame implements ActionListener {
 						.addComponent(newCustStateLabel)
 						.addComponent(newCustZipLabel)
 						)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.TRAILING)
 						.addComponent(newCustFNText)
 						.addComponent(newCustLNText)
 						.addComponent(newCustPhoneText)
@@ -542,37 +542,37 @@ public class CashierApp extends JFrame implements ActionListener {
 						.addComponent(newCustomerSelectionButton)
 						)
 				);
-		groupLayout.setVerticalGroup(
-				groupLayout.createSequentialGroup()
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+		gl.setVerticalGroup(
+				gl.createSequentialGroup()
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 						.addComponent(newCustFNLabel)
 						.addComponent(newCustFNText)
 						)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 						.addComponent(newCustLNLabel)
 						.addComponent(newCustLNText)
 						)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 						.addComponent(newCustPhoneLabel)
 						.addComponent(newCustPhoneText)
 						)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 						.addComponent(newCustEmailLabel)
 						.addComponent(newCustEmailText)
 						)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 						.addComponent(newCustStreetLabel)
 						.addComponent(newCustStreetText)
 						)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 						.addComponent(newCustCityLabel)
 						.addComponent(newCustCityText)
 						)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 						.addComponent(newCustStateLabel)
 						.addComponent(newCustStateText)
 						)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 						.addComponent(newCustZipLabel)
 						.addComponent(newCustZipText)
 						)
@@ -582,10 +582,10 @@ public class CashierApp extends JFrame implements ActionListener {
 		
 		// confirm order screen
 		confirmOrderPanel = new JPanel();
-		groupLayout = new GroupLayout(confirmOrderPanel);
-		confirmOrderPanel.setLayout(groupLayout);
-		groupLayout.setAutoCreateGaps(true);
-		groupLayout.setAutoCreateContainerGaps(true);
+		gl = new GroupLayout(confirmOrderPanel);
+		confirmOrderPanel.setLayout(gl);
+		gl.setAutoCreateGaps(true);
+		gl.setAutoCreateContainerGaps(true);
 		customerInfoLabel = new JLabel("Customer Info");
 		confirmOrderTotalLabel = new JLabel();
 		updateTotal();
@@ -595,22 +595,22 @@ public class CashierApp extends JFrame implements ActionListener {
 		JScrollPane confirmScrollContainer = new JScrollPane(confirmOrderTable);
 		confirmOrderButton = new JButton("Confirm");
 		confirmOrderButton.addActionListener(this);
-		groupLayout.setHorizontalGroup(
-				groupLayout.createSequentialGroup()
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+		gl.setHorizontalGroup(
+				gl.createSequentialGroup()
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.LEADING)
 						.addComponent(customerInfoLabel)
 						.addComponent(customerInfoText)
 						)
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.TRAILING)
 						.addComponent(confirmScrollContainer)
 						.addComponent(confirmOrderTotalLabel)
 						.addComponent(confirmOrderButton)
 						)
 				);
-		groupLayout.setVerticalGroup(
-				groupLayout.createSequentialGroup()
-				.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addGroup(groupLayout.createSequentialGroup()
+		gl.setVerticalGroup(
+				gl.createSequentialGroup()
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addGroup(gl.createSequentialGroup()
 								.addComponent(customerInfoLabel)
 								.addComponent(customerInfoText)
 								)
