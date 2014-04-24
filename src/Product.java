@@ -15,10 +15,17 @@ public class Product extends Relation {
 	private static final String BRAND = "brand";
 	private static final String QUANTITY = "package_quantity";
 	
-//	private HashMap<String, Object> attributes = new HashMap<String, Object>();
+	private static final String PRICE = "price";
+	
+	private Double price = null;
 	
 	public Product(ResultSet set) throws SQLException {
 		this(set.getString(UPC), set.getString(PNAME), set.getString(BRAND), set.getInt(QUANTITY));
+		try {
+			price = set.getDouble(PRICE);
+		} catch(SQLException e) {
+			// this is fine
+		}
 	}
 	
 	public Product(String upc, String pname, String brand, Integer packageQuantity) {
@@ -50,6 +57,10 @@ public class Product extends Relation {
 	
 	public Integer getPackageQuantity() {
 		return(Integer)attributes.get(QUANTITY);
+	}
+	
+	public Double getPrice() {
+		return price;
 	}
 	
 	public List<Relation> find(Connection conn, Store store) {
@@ -107,7 +118,8 @@ public class Product extends Relation {
 			ResultSet result = findPrice.executeQuery("select s.`price` "
 					+ "from stock s where s.`upc`='" + getUpc() + "' and s.`sid`='" + store.getSid() + "';");
 			if(result.next()) {
-				return result.getDouble(1);
+				price = result.getDouble(1);
+				return price;
 			} else {
 				throw new SQLException("Could no get price");
 			}

@@ -15,6 +15,7 @@ import javax.swing.BoxLayout;
 import javax.swing.GroupLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -32,6 +33,8 @@ import javax.swing.table.DefaultTableModel;
 public class WebApp extends JFrame implements ActionListener {
 	private static final String[] ITEM_SEARCH_COLS = {"pname", "brand", "package_quantity"};//, "price"};
 	
+	private static final Store webStore = new Store("1", null, null, null, null, null, null, null, null, null, null, null, null); // TODO make real web store entry
+	
 	private static enum Screen {
 		ITEM_SEARCH("Item Search");
 		private String name;
@@ -40,6 +43,9 @@ public class WebApp extends JFrame implements ActionListener {
 	};
 	
 	private Screen currentScreen;
+	
+	private Category lastTouchedCategory;
+	private String lastComboSelection;
 	
 	// store logo and title
 	private JPanel titlePanel;
@@ -53,6 +59,7 @@ public class WebApp extends JFrame implements ActionListener {
 	private JPanel itemSearchPanel;
 	private JLabel searchBrandLabel;
 	private JTextField searchBrandText;
+	private JComboBox orderByBox;
 	private JButton itemSearchButton;
 	private JMenuBar categoryMenu;
 	private JTable itemSearchTable;
@@ -82,9 +89,8 @@ public class WebApp extends JFrame implements ActionListener {
 		searchBrandText = new JTextField();
 		itemSearchButton = new JButton("Search");
 		itemSearchButton.addActionListener(this);
-		categoryMenu = new JMenuBar();
-		categoryMenu.setLayout(new BoxLayout(categoryMenu, BoxLayout.PAGE_AXIS));
-		createMenuBar();
+		categoryMenu = createMenuBar();
+		orderByBox = createComboBox();
 		JScrollPane menuScrollPane = new JScrollPane(categoryMenu);
 		itemSearchTable = createTable(ITEM_SEARCH_COLS);
 		JScrollPane itemSearchScrollPane = new JScrollPane(itemSearchTable);
@@ -97,6 +103,7 @@ public class WebApp extends JFrame implements ActionListener {
 								.addComponent(searchBrandLabel)
 								.addComponent(searchBrandText)
 								.addComponent(itemSearchButton)
+								.addComponent(orderByBox)
 								)
 						)
 				);
@@ -109,6 +116,7 @@ public class WebApp extends JFrame implements ActionListener {
 									.addComponent(searchBrandLabel)
 									.addComponent(searchBrandText)
 									.addComponent(itemSearchButton)
+									.addComponent(orderByBox)
 									)
 								.addComponent(itemSearchScrollPane)
 								)
@@ -127,8 +135,10 @@ public class WebApp extends JFrame implements ActionListener {
 		}
 	}
 	
-	private void createMenuBar() {
-		categoryMenu.addMouseListener(new MouseAdapter() {
+	private JMenuBar createMenuBar() {
+		JMenuBar menuBar = new JMenuBar();
+		menuBar.setLayout(new BoxLayout(menuBar, BoxLayout.PAGE_AXIS));
+		menuBar.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseExited(MouseEvent e) {
 				// TODO doesn't always work
@@ -162,16 +172,10 @@ public class WebApp extends JFrame implements ActionListener {
 					
 					@Override
 					public void mouseClicked(MouseEvent e) {
-						// TODO search that category and close all menus
 						CategoryMenu menu = (CategoryMenu)e.getSource();
 						menu.setPopupMenuVisible(false);
-						Connection conn = DatabaseUtils.openConnection();
-						List<Relation> results = menu.getCategory().getProducts(conn);
-						DatabaseUtils.closeConnection(conn);
-						if(results != null) {
-							System.out.println("Clicked category " + menu.getCategory());
-							updateTable(itemSearchTable, results, ITEM_SEARCH_COLS);
-						}
+						lastTouchedCategory = menu.getCategory();
+						itemSearchEvent();
 					}
 				});
 				List<Relation> subcategories = cat.getChildCategories(conn);
@@ -181,25 +185,34 @@ public class WebApp extends JFrame implements ActionListener {
 					subCatItem.addMouseListener(new MouseAdapter() {
 						@Override
 						public void mouseClicked(MouseEvent e) {
-							// TODO search that category and close all menus
 							SubcategoryMenu menu = (SubcategoryMenu)e.getSource();
 							menu.getParentMenu().setPopupMenuVisible(false);
-							Connection conn = DatabaseUtils.openConnection();
-							List<Relation> results = menu.getCategory().getProducts(conn);
-							DatabaseUtils.closeConnection(conn);
-							if(results != null) {
-								System.out.println("Clicked subcategory " + menu.getCategory());
-								updateTable(itemSearchTable, results, ITEM_SEARCH_COLS);
-							}
-							
+							lastTouchedCategory = menu.getCategory();
+							itemSearchEvent();
 						}
 					});
 					cm.add(subCatItem);
 				}
-				categoryMenu.add(cm);
+				menuBar.add(cm);
 			}
 		}
 		DatabaseUtils.closeConnection(conn);
+		return menuBar;
+	}
+	
+	private JComboBox createComboBox() {
+		JComboBox combo = new JComboBox(new String[] {"None", "Price", "Popularity"});
+		combo.setSelectedIndex(0);
+		lastComboSelection = "None";
+		combo.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JComboBox c = (JComboBox)e.getSource();
+				lastComboSelection = (String)c.getSelectedItem();
+				itemSearchEvent();
+			}
+		});
+		return combo;
 	}
 	
 	private JTable createTable(String[] columnNames) {
@@ -225,6 +238,28 @@ public class WebApp extends JFrame implements ActionListener {
 		}
 		String[][] tableData = new String[0][numColumns];
 		table.setModel(new DefaultTableModel(tableData, columnNames));
+	}
+	
+	private void itemSearchEvent() {
+		if(lastTouchedCategory != null) {
+			Connection conn = DatabaseUtils.openConnection();
+			List<Relation> results = null;
+			switch(lastComboSelection) {
+			case "None":
+				results = lastTouchedCategory.getProducts(conn, webStore);
+				break;
+			case "Price":
+				results = lastTouchedCategory.getProductsByPrice(conn, webStore);
+				break;
+			case "Popularity":
+				results = lastTouchedCategory.getProductsByPopularity(conn, webStore);
+				break;
+			}
+			DatabaseUtils.closeConnection(conn);
+			if(results != null) {
+				updateTable(itemSearchTable, results, ITEM_SEARCH_COLS);
+			}
+		}
 	}
 	
 	private void switchScreen(Screen screen) {
