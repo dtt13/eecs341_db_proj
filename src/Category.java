@@ -70,4 +70,21 @@ public class Category extends Relation {
 		}
 		return null;
 	}
+	
+	public List<Relation> getProducts(Connection conn) {
+		List<Relation> pList = new ArrayList<Relation>();
+		try {
+			Statement stmt = conn.createStatement();
+			ResultSet result = stmt.executeQuery("select p.`upc`, p.`pname`, p.`brand`, p.`package_quantity "
+					+ "from `has_cat` h, products p where h.`cat_id`='" + getCatId() + "' and p.`upc`=h.`upc`;");
+			while(result.next()) {
+				pList.add(new Product(result));
+			}
+			return pList;
+		} catch(SQLException e) {
+			System.err.println("Could not get products from categories");
+			System.err.println(e.getMessage());
+		}
+		return null;
+	}
 }
