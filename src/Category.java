@@ -75,8 +75,15 @@ public class Category extends Relation {
 		List<Relation> pList = new ArrayList<Relation>();
 		try {
 			Statement stmt = conn.createStatement();
-			ResultSet result = stmt.executeQuery("select p.`upc`, p.`pname`, p.`brand`, p.`package_quantity "
-					+ "from `has_cat` h, products p where h.`cat_id`='" + getCatId() + "' and p.`upc`=h.`upc`;");
+			ResultSet result;
+			if(getParentId() == null) { // top-level
+				result = stmt.executeQuery("select p.`upc`, p.`pname`, p.`brand`, p.`package_quantity` "
+						+ "from category c, `has_cat` h, products p where c.`parent_id`='" + getCatId() + "' and c.`cat_id`=h.`cat_id` and p.`upc`=h.`upc`;");
+				//TODO remove duplicates
+			} else { // subcategory
+				result = stmt.executeQuery("select p.`upc`, p.`pname`, p.`brand`, p.`package_quantity` "
+						+ "from `has_cat` h, products p where h.`cat_id`='" + getCatId() + "' and p.`upc`=h.`upc`;");
+			}
 			while(result.next()) {
 				pList.add(new Product(result));
 			}
@@ -86,5 +93,10 @@ public class Category extends Relation {
 			System.err.println(e.getMessage());
 		}
 		return null;
+	}
+	
+	@Override
+	public String toString() {
+		return getCatName();
 	}
 }

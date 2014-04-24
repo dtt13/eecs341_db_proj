@@ -30,7 +30,7 @@ import javax.swing.plaf.FontUIResource;
 import javax.swing.table.DefaultTableModel;
 
 public class WebApp extends JFrame implements ActionListener {
-	private static final String[] ITEM_SEARCH_COLS = {"pname", "brand", "quantity", "price"};
+	private static final String[] ITEM_SEARCH_COLS = {"pname", "brand", "package_quantity"};//, "price"};
 	
 	private static enum Screen {
 		ITEM_SEARCH("Item Search");
@@ -128,6 +128,15 @@ public class WebApp extends JFrame implements ActionListener {
 	}
 	
 	private void createMenuBar() {
+		categoryMenu.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseExited(MouseEvent e) {
+				// TODO doesn't always work
+				for(int i = 0; i < categoryMenu.getMenuCount(); i++) {
+					categoryMenu.getMenu(i).setPopupMenuVisible(false);
+				}
+			}
+		});
 		Connection conn = DatabaseUtils.openConnection();
 		List<Relation> categories = Category.getTopLevelCategories(conn);
 		if(categories != null) {
@@ -135,30 +144,62 @@ public class WebApp extends JFrame implements ActionListener {
 				Category cat = (Category)r;
 				CategoryMenu cm = new CategoryMenu(cat);
 				cm.addMouseListener(new MouseAdapter() {
+					@Override
 					public void mouseEntered(MouseEvent e) {
 						CategoryMenu menu = (CategoryMenu)e.getSource();
+						for(int i = 0; i < categoryMenu.getMenuCount(); i++) {
+							categoryMenu.getMenu(i).setPopupMenuVisible(false);
+						}
 						menu.setPopupMenuVisible(true);
 					}
 					
+					@Override
 					public void mouseExited(MouseEvent e) {
 						CategoryMenu menu = (CategoryMenu)e.getSource();
-						menu.setPopupMenuVisible(false);
+//						menu.setPopupMenuVisible(false);
+						// TODO don't close unless leaving menuitems too
 					}
 					
+					@Override
 					public void mouseClicked(MouseEvent e) {
 						// TODO search that category and close all menus
+						CategoryMenu menu = (CategoryMenu)e.getSource();
+						menu.setPopupMenuVisible(false);
+						Connection conn = DatabaseUtils.openConnection();
+						List<Relation> results = menu.getCategory().getProducts(conn);
+						DatabaseUtils.closeConnection(conn);
+						if(results != null) {
+							System.out.println("Clicked category " + menu.getCategory());
+							updateTable(itemSearchTable, results, ITEM_SEARCH_COLS);
+						}
 					}
 				});
 				List<Relation> subcategories = cat.getChildCategories(conn);
 				for(Relation subr : subcategories) {
 					Category subcat = (Category)subr;
-					cm.add(new JMenuItem(subcat.getCatName()));
-					// TODO add actionListener or mouselistener?
+					JMenuItem subCatItem = new SubcategoryMenu(subcat, cm);
+					subCatItem.addMouseListener(new MouseAdapter() {
+						@Override
+						public void mouseClicked(MouseEvent e) {
+							// TODO search that category and close all menus
+							SubcategoryMenu menu = (SubcategoryMenu)e.getSource();
+							menu.getParentMenu().setPopupMenuVisible(false);
+							Connection conn = DatabaseUtils.openConnection();
+							List<Relation> results = menu.getCategory().getProducts(conn);
+							DatabaseUtils.closeConnection(conn);
+							if(results != null) {
+								System.out.println("Clicked subcategory " + menu.getCategory());
+								updateTable(itemSearchTable, results, ITEM_SEARCH_COLS);
+							}
+							
+						}
+					});
+					cm.add(subCatItem);
 				}
 				categoryMenu.add(cm);
 			}
 		}
-		DatabaseUtils.openConnection();
+		DatabaseUtils.closeConnection(conn);
 	}
 	
 	private JTable createTable(String[] columnNames) {
@@ -204,6 +245,26 @@ public class WebApp extends JFrame implements ActionListener {
 		} 
 	}
 	
+	private static String capitalize(String s) {
+		StringBuilder builder = new StringBuilder();
+		if(s != null) {
+			boolean isFirstLetter = true;
+			for(int i = 0; i < s.length(); i++) {
+				char nextChar = s.charAt(i);
+				if(isFirstLetter) {
+					builder.append(Character.toUpperCase(nextChar));
+					isFirstLetter = false;
+				} else {
+					builder.append(nextChar);
+				}
+				if(nextChar == ' ') {
+					isFirstLetter = true;
+				}
+			}
+		}
+		return builder.toString();
+	}
+
 	public static void main(String[] args) {
 		setLookAndFeel();
 		WebApp w = new WebApp();
@@ -218,7 +279,7 @@ public class WebApp extends JFrame implements ActionListener {
 		private Category category;
 		
 		CategoryMenu(Category category) {
-            super(capitalize(category.getCatName()));
+            super(WebApp.capitalize(category.getCatName()));
             this.category = category;
             JPopupMenu pm = getPopupMenu();
             pm.setLayout(new BoxLayout(pm, BoxLayout.PAGE_AXIS));
@@ -258,14 +319,31 @@ public class WebApp extends JFrame implements ActionListener {
             }
 		}
 		
-		private static String capitalize(String s) {
-			String out = s;
-			if(s != null && s.length() > 0) {
-				out = Character.toUpperCase(s.charAt(0)) + s.substring(1);
-			}
-			return out;
+		public Category getCategory() {
+			return category;
 		}
 		
     }
+	
+	static class SubcategoryMenu extends JMenuItem {
+		
+		private Category category;
+		private CategoryMenu parentMenu;
+		
+		public SubcategoryMenu(Category category, CategoryMenu parentMenu) {
+			super(WebApp.capitalize(category.getCatName()));
+			this.category = category;
+			this.parentMenu = parentMenu;
+		}
+		
+		public Category getCategory() {
+			return category;
+		}
+		
+		public CategoryMenu getParentMenu() {
+			return parentMenu;
+		}
+		
+	}
 	
 }
