@@ -21,6 +21,8 @@ Code: All of these files are contained in the src folder
 - Supply.java
 - WebApp.java
 
+Image: Used in my application to look more professional
+- logo.jpg
 
 This project consists of three interfaces: BusinessApp, CashierApp, and WebApp.
 

@@ -258,7 +258,6 @@ public class WebApp extends JFrame implements ActionListener {
 		menuBar.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseExited(MouseEvent e) {
-				// TODO doesn't always work
 				for(int i = 0; i < categoryMenu.getMenuCount(); i++) {
 					categoryMenu.getMenu(i).setPopupMenuVisible(false);
 				}

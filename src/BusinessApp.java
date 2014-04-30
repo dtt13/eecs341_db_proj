@@ -2,8 +2,6 @@ import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -204,7 +202,7 @@ public class BusinessApp extends JFrame implements ActionListener {
 	}
 	
 	private JComboBox createProductsComboBox() {
-		String[] items = new String[]{"all results", "top selling", "worst selling"};
+		String[] items = new String[]{"all results", "top selling"};
 		return new JComboBox(items);
 	}
 	
@@ -222,46 +220,7 @@ public class BusinessApp extends JFrame implements ActionListener {
 		cb.addItem("stores");
 		cb.addItem("stock");
 		cb.addItem("category");
-		cb.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if(e.getStateChange() == ItemEvent.SELECTED) {
-//					int row = 0; // TODO find the actual row
-//					JComboBox propBox = (JComboBox)productsConstraints.getValueAt(row, 0);
-//					JComboBox consBox = (JComboBox)productsConstraints.getValueAt(row, 1);
-//					System.out.println(propBox);
-//					System.out.println(consBox);
-//					consBox.removeAllItems();
-					String[] consItems = null;
-					switch((String)((JComboBox)e.getSource()).getSelectedItem()) {
-					case "product":
-						consItems = new String[]{"upc","pname","brand"};
-						break;
-					case "stores":
-						consItems = new String[]{"sid","city","state","zip"};
-						break;
-					case "stock":
-						consItems = new String[]{"price greater than", "price less than", "price between"};
-						break;
-					case "category":
-						consItems = new String[]{"cat_name"};
-						break;
-					}
-//					if(consItems != null) {
-//						for(String item : consItems) {
-//							consBox.addItem(item);
-//						}
-//						consBox.setSelectedIndex(0);
-//					}
-				}
-			}
-		});
 		propColumn.setCellEditor(new DefaultCellEditor(cb));
-		
-		// setup the constraint column
-//		TableColumn consColumn = productsConstraints.getColumnModel().getColumn(1);
-//		cb = new JComboBox(new String[]{"None"});
-//		consColumn.setCellEditor(new DefaultCellEditor(cb));
 	}
 
 	private void setupSupplyColumns() {
@@ -273,52 +232,12 @@ public class BusinessApp extends JFrame implements ActionListener {
 		cb.addItem("stores");
 		cb.addItem("products");
 		cb.addItem("supply");
-		cb.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if(e.getStateChange() == ItemEvent.SELECTED) {
-//					int row = 0; // TODO find the actual row
-//					JComboBox propBox = (JComboBox)productsConstraints.getValueAt(row, 0);
-//					JComboBox consBox = (JComboBox)productsConstraints.getValueAt(row, 1);
-//					System.out.println(propBox);
-//					System.out.println(consBox);
-//					consBox.removeAllItems();
-					String[] consItems = null;
-					switch((String)((JComboBox)e.getSource()).getSelectedItem()) {
-					case "vendors":
-						consItems = new String[]{"vid","vname","state"};
-						break;
-					case "stores":
-						consItems = new String[]{"sid","city","state","zip"};
-						break;
-					case "product":
-						consItems = new String[]{"upc","pname","brand"};
-						break;
-					case "supply":
-						consItems = new String[]{"order date", "receive date"};
-						break;
-					}
-//					if(consItems != null) {
-//						for(String item : consItems) {
-//							consBox.addItem(item);
-//						}
-//						consBox.setSelectedIndex(0);
-//					}
-				}
-			}
-		});
 		propColumn.setCellEditor(new DefaultCellEditor(cb));
-		
-		// setup the constraint column
-//		TableColumn consColumn = productsConstraints.getColumnModel().getColumn(1);
-//		cb = new JComboBox(new String[]{"None"});
-//		consColumn.setCellEditor(new DefaultCellEditor(cb));
 	}
 	
 	private void analyzeProducts() {
 		// generate the subquery
 		StringBuilder subquery = new StringBuilder("select p.upc, p.pname, p.brand, p.`package_quantity` ");
-//		subquery.append()
 		boolean isFirstStore = true;
 		boolean isFirstStock = true;
 		boolean isFirstCat = true;
@@ -439,19 +358,18 @@ public class BusinessApp extends JFrame implements ActionListener {
 		System.out.println(subquery.toString());
 		// outer query
 		StringBuilder sql = new StringBuilder();
+		boolean[] include = null;
 		switch((String)productsSelection.getSelectedItem()) {
 		case "all results":
-			sql.append("select distinct(sub.upc), sub.pname from (" + subquery + ") as sub;"); 
+			sql.append("select distinct(sub.upc), sub.pname from (" + subquery + ") as sub;");
+			include = new boolean[]{true, true, false};
 			break;
 		case "top selling":
-			sql.append("select distinct(sub.upc)"); // TODO
-			break;
-		case "worst selling":
-			//TODO
+			sql.append("select distinct(sub.upc), sub.pname, sum(c.quantity) as total from (" + subquery + ") as sub, consists c where c.upc=sub.upc group by sub.upc, sub.pname order by total desc;"); 
+			include = new boolean[]{true, true, true};
 			break;
 		}
 		System.out.println(sql.toString());
-		
 		
 		// execute query
 		Connection conn = DatabaseUtils.openConnection();
@@ -459,7 +377,25 @@ public class BusinessApp extends JFrame implements ActionListener {
 			ResultSet result = conn.createStatement().executeQuery(sql.toString());
 			clearResultTable(productsResults);
 			while(result.next()) {
-				String[] data = new String[]{result.getString(1), result.getString(2), ""};
+				String[] data = new String[include.length];
+				int counter = 1;
+				for(int i = 0; i < include.length; i++) {
+					if(include[i]) {
+						try {
+							data[i] = result.getString(counter);
+						} catch(Exception e) {
+							try {
+								data[i] = Integer.toString(result.getInt(counter));
+							} catch(Exception e2) {
+								data[i] = String.format("%10.2f", result.getDouble(counter));
+							}
+						} finally {
+							counter++;
+						}
+					} else {
+						data[i] = "";
+					}
+				}
 				updateResultTable(productsResults, data, PRODUCT_COLS);
 			}
 		} catch (SQLException e) {
@@ -472,7 +408,6 @@ public class BusinessApp extends JFrame implements ActionListener {
 	private void analyzeSupply() {
 		// generate the subquery
 		StringBuilder subquery = new StringBuilder("select s.vid, s.sid, s.upc, s.cost, s.quantity, s.`order_date`, s.`recv_date` ");
-//		subquery.append()
 		boolean isFirstStore = true;
 		boolean isFirstVendor = true;
 		boolean isFirstProduct = true;
@@ -582,7 +517,6 @@ public class BusinessApp extends JFrame implements ActionListener {
 		if(!isFirstWhere) {
 			subquery.append(whereClause.toString());
 		}
-		System.out.println(subquery.toString());
 		// outer query
 		StringBuilder sql = new StringBuilder();
 		boolean[] include = null;
@@ -604,8 +538,6 @@ public class BusinessApp extends JFrame implements ActionListener {
 			include = new boolean[]{false ,false, false, false, true};
 			break; 
 		}
-		System.out.println(sql.toString());
-		
 		// execute query
 		Connection conn = DatabaseUtils.openConnection();
 		try {
