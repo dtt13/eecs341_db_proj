@@ -4,7 +4,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.GroupLayout;
@@ -20,13 +25,15 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
 
 
 public class BusinessApp extends JFrame implements ActionListener {
 	
 	private static final String[] CONSTRAINT_COLS = {"property", "constraint", "value 1", "value 2"};
-	private static final String[] PRODUCT_COLS = {"upc", "pname", "value" };
+	private static final String[] PRODUCT_COLS = {"upc", "pname", "value"};
 	
 	// store logo and title
 	private JPanel titlePanel;
@@ -68,9 +75,9 @@ public class BusinessApp extends JFrame implements ActionListener {
 		productsConstraints = createConstraintTable(CONSTRAINT_COLS);
 		setupProductColumns();
 		JScrollPane pcScroll = new JScrollPane(productsConstraints);
-		productsResults = createResultTable(CONSTRAINT_COLS);
+		productsResults = createResultTable(PRODUCT_COLS);
 		JScrollPane prScroll = new JScrollPane(productsResults);
-		productsSelection = createComboBox();
+		productsSelection = createProductsComboBox();
 		productFindButton = new JButton("Analyze");
 		productFindButton.addActionListener(this);
 //		productResetButton = new JButton("Reset");
@@ -111,6 +118,8 @@ public class BusinessApp extends JFrame implements ActionListener {
 		JButton src = (JButton)e.getSource();
 		if(src.equals(productFindButton)) {
 			System.out.println("Finding...");
+			analyzeProducts();
+		}
 //		} else if(src.equals(storeSearchButton)) {
 //			Store s = new Store(null, null, null, searchCityText.getText(), searchStateText.getText(), searchZipText.getText(),
 //					null, null, null, null, null, null, null);
@@ -118,7 +127,7 @@ public class BusinessApp extends JFrame implements ActionListener {
 //			storeList = s.find(conn);
 //			updateTable(storeSearchTable, storeList, STORE_SEARCH_COLS);
 //			DatabaseUtils.closeConnection(conn);
-		}
+//		}
 	}
 	
 	private JTable createConstraintTable(String[] columnNames) {
@@ -143,8 +152,29 @@ public class BusinessApp extends JFrame implements ActionListener {
 		return table;
 	}
 	
-	private JComboBox createComboBox() {
-		return new JComboBox();
+//	private void updateResultTable(JTable table, List<Relation> data, String[] columnNames) {
+//		String[][] tableData = Relation.createTableData(data, columnNames);
+//		table.setModel(new DefaultTableModel(tableData, columnNames));
+//	}
+//	
+	private void updateResultTable(JTable table, String[] data, String[] columnNames) {
+		DefaultTableModel tm = (DefaultTableModel)table.getModel();
+		tm.addRow(data);
+	}
+	
+	private void clearResultTable(JTable table) {
+		int numColumns = table.getColumnCount();
+		String[] columnNames = new String[numColumns];
+		for(int i = 0; i < numColumns; i++) {
+			columnNames[i] = table.getColumnName(i);
+		}
+		String[][] tableData = new String[0][numColumns];
+		table.setModel(new DefaultTableModel(tableData, columnNames));
+	}
+	
+	private JComboBox createProductsComboBox() {
+		String[] items = new String[]{"All results"};
+		return new JComboBox(items);
 	}
 	
 	private void setupProductColumns() {
@@ -162,12 +192,12 @@ public class BusinessApp extends JFrame implements ActionListener {
 				if(e.getStateChange() == ItemEvent.SELECTED) {
 					int row = 0; // TODO find the actual row
 //					JComboBox propBox = (JComboBox)productsConstraints.getValueAt(row, 0);
-					JComboBox consBox = (JComboBox)productsConstraints.getValueAt(row, 1);
+//					JComboBox consBox = (JComboBox)productsConstraints.getValueAt(row, 1);
 //					System.out.println(propBox);
-					System.out.println(consBox);
-					consBox.removeAllItems();
+//					System.out.println(consBox);
+//					consBox.removeAllItems();
 					String[] consItems = null;
-					switch((String)e.getSource()) {
+					switch((String)((JComboBox)e.getSource()).getSelectedItem()) {
 					case "product":
 						consItems = new String[]{"upc","pname","brand"};
 						break;
@@ -183,9 +213,9 @@ public class BusinessApp extends JFrame implements ActionListener {
 					}
 					if(consItems != null) {
 						for(String item : consItems) {
-							consBox.addItem(item);
+//							consBox.addItem(item);
 						}
-						consBox.setSelectedIndex(0);
+//						consBox.setSelectedIndex(0);
 					}
 				}
 			}
@@ -193,12 +223,153 @@ public class BusinessApp extends JFrame implements ActionListener {
 		propColumn.setCellEditor(new DefaultCellEditor(cb));
 		
 		// setup the constraint column
-		TableColumn consColumn = productsConstraints.getColumnModel().getColumn(1);
-		cb = new JComboBox(new String[]{"None"});
-		consColumn.setCellEditor(new DefaultCellEditor(cb));
+//		TableColumn consColumn = productsConstraints.getColumnModel().getColumn(1);
+//		cb = new JComboBox(new String[]{"None"});
+//		consColumn.setCellEditor(new DefaultCellEditor(cb));
 		
 		
 	}
+	
+	private void analyzeProducts() {
+		// generate the subquery
+		StringBuilder subquery = new StringBuilder("select p.upc, p.pname, p.brand, p.`package_quantity` ");
+//		subquery.append()
+		boolean isFirstStore = true;
+		boolean isFirstStock = true;
+		boolean isFirstCat = true;
+		boolean isFirstWhere = true;
+		StringBuilder fromClause = new StringBuilder("from products p");
+		StringBuilder whereClause = new StringBuilder("where");
+		TableModel tm = productsConstraints.getModel();
+		for(int row = 0; row < productsConstraints.getRowCount(); row++) {
+//			for(int col = 0; col < productsConstraints.getColumnCount(); col++) {
+//				
+//			}
+			if(tm.getValueAt(row,0) != null) {
+				switch((String)tm.getValueAt(row, 0)) {
+				case "products":
+					switch((String)tm.getValueAt(row,1)) {
+					case "upc":
+						if(isFirstWhere) {
+							isFirstWhere = false;
+						} else {
+							whereClause.append(" and");
+						}
+						whereClause.append(" p.upc='" + (String)tm.getValueAt(row, 2) + "'");
+						break;
+					case "pname":
+						if(isFirstWhere) {
+							isFirstWhere = false;
+						} else {
+							whereClause.append(" and");
+						}
+						whereClause.append(" p.pname='" + (String)tm.getValueAt(row, 2) + "'");
+						break;
+					case "brand":
+						if(isFirstWhere) {
+							isFirstWhere = false;
+						} else {
+							whereClause.append(" and");
+						}
+						whereClause.append(" p.brand='" + (String)tm.getValueAt(row, 2) + "'");
+						break;
+					}
+					break;
+				case "stores":
+					if(isFirstStore) {
+						fromClause.append(", stores s");
+						if(isFirstStock) {
+							fromClause.append(", stock t");
+							isFirstStock = false;
+							if(isFirstWhere) {
+								isFirstWhere = false;
+							} else {
+								whereClause.append(" and");
+							}
+							whereClause.append(" p.upc=t.upc");
+						}
+						whereClause.append(" and t.sid=s.sid");
+						isFirstStore = false;
+					}
+					switch((String)tm.getValueAt(row,1)) {
+					case "sid":
+						whereClause.append(" and s.sid='" + (String)tm.getValueAt(row, 2) + "'");
+						break;
+					case "city":
+						whereClause.append(" and s.city='" + (String)tm.getValueAt(row, 2) + "'");
+						break;
+					case "state":
+						whereClause.append(" and s.state='" + (String)tm.getValueAt(row, 2) + "'");
+						break;
+					case "zip":
+						whereClause.append(" and s.zip='" + (String)tm.getValueAt(row, 2) + "'");
+						break;
+					}
+					break;
+				case "stock":
+					if(isFirstStock) {
+						fromClause.append(", stock t");
+						isFirstStock = false;
+						if(isFirstWhere) {
+							isFirstWhere = false;
+						} else {
+							whereClause.append(" and");
+						}
+						whereClause.append(" p.upc=t.upc");
+					}
+					switch((String)tm.getValueAt(row,1)) {
+					case "price greater than":
+						
+						whereClause.append(" and t.price>" + (String)tm.getValueAt(row, 2));
+						break;
+					case "price less than":
+						whereClause.append(" and t.price<" + (String)tm.getValueAt(row, 2));
+						break;
+					case "price between":
+						whereClause.append(" and t.price between " + (String)tm.getValueAt(row, 2) + " and " + (String)tm.getValueAt(row, 3));
+						break;
+					}
+					break;
+				case "category":
+					if(isFirstCat) {
+						fromClause.append(", category c, `has_cat` h");
+						isFirstCat = false;
+						if(isFirstWhere) {
+							isFirstWhere = false;
+						} else {
+							whereClause.append(" and");
+						}
+						whereClause.append(" p.upc=h.upc and h.`cat_id`=c.`cat_id`");
+					}
+					switch((String)tm.getValueAt(row,1)) {
+					case "cat_name":
+						whereClause.append(" and c.`cat_name`='" + (String)tm.getValueAt(row, 2) + "'");
+						break;
+					}
+					break;
+				}
+			}
+		}
+		subquery.append(fromClause.toString() + " ");
+		subquery.append(whereClause.toString() + ";");
+		System.out.println(subquery.toString());
+		// execute query
+		List<Relation> pList = new ArrayList<Relation>();
+		Connection conn = DatabaseUtils.openConnection();
+		try {
+			ResultSet result = conn.createStatement().executeQuery(subquery.toString());
+			clearResultTable(productsResults);
+			while(result.next()) {
+				String[] data = new String[]{result.getString(1), result.getString(2), ""};
+				updateResultTable(productsResults, data, PRODUCT_COLS);
+			}
+		} catch (SQLException e) {
+			System.err.println("Could not execute query");
+			System.err.println(e.getMessage());
+		}
+		DatabaseUtils.closeConnection(conn);
+	}
+	
 	
 //	private static String capitalize(String s) {
 //		StringBuilder builder = new StringBuilder();
