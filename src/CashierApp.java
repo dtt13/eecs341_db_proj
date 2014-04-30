@@ -120,10 +120,10 @@ public class CashierApp extends JFrame implements ActionListener {
 	
 	// customer sign-in screen
 	private JPanel customerSignInPanel;
-	private JLabel customerFNLabel;
-	private JLabel customerLNLabel;
-	private JTextField customerFNText;
-	private JTextField customerLNText;
+	private JLabel customerEmailLabel;
+	private JLabel customerPhoneLabel;
+	private JTextField customerEmailText;
+	private JTextField customerPhoneText;
 	private JTable customerSelectionTable;
 	private JButton customerFindButton;
 	private JButton customerNewButton;
@@ -439,10 +439,10 @@ public class CashierApp extends JFrame implements ActionListener {
 		customerSignInPanel.setLayout(gl);
 		gl.setAutoCreateGaps(true);
 		gl.setAutoCreateContainerGaps(true);
-		customerFNLabel = new JLabel("First Name");
-		customerLNLabel = new JLabel("Last Name");
-		customerFNText = new JTextField();
-		customerLNText = new JTextField();
+		customerEmailLabel = new JLabel("Email");
+		customerPhoneLabel = new JLabel("Phone");
+		customerEmailText = new JTextField();
+		customerPhoneText = new JTextField();
 		customerFindButton = new JButton("Find");
 		customerFindButton.addActionListener(this);
 		customerNewButton = new JButton("New");
@@ -455,12 +455,12 @@ public class CashierApp extends JFrame implements ActionListener {
 				gl.createSequentialGroup()
 				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.TRAILING)
 						.addGroup(gl.createSequentialGroup()
-								.addComponent(customerFNLabel)
-								.addComponent(customerFNText)
+								.addComponent(customerEmailLabel)
+								.addComponent(customerEmailText)
 								)
 						.addGroup(gl.createSequentialGroup()
-								.addComponent(customerLNLabel)
-								.addComponent(customerLNText)
+								.addComponent(customerPhoneLabel)
+								.addComponent(customerPhoneText)
 								)	
 						.addGroup(gl.createSequentialGroup()
 								.addComponent(customerNewButton)
@@ -477,12 +477,12 @@ public class CashierApp extends JFrame implements ActionListener {
 				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addGroup(gl.createSequentialGroup()
 								.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
-										.addComponent(customerFNLabel)
-										.addComponent(customerFNText)
+										.addComponent(customerEmailLabel)
+										.addComponent(customerEmailText)
 										)
 								.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
-										.addComponent(customerLNLabel)
-										.addComponent(customerLNText)
+										.addComponent(customerPhoneLabel)
+										.addComponent(customerPhoneText)
 										)
 								.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
 										.addComponent(customerNewButton)
@@ -715,8 +715,8 @@ public class CashierApp extends JFrame implements ActionListener {
 		customer = null;
 		customerList = null;
 		clearTable(customerSelectionTable);
-		customerFNText.setText("");
-		customerLNText.setText("");
+		customerEmailText.setText("");
+		customerPhoneText.setText("");
 	}
 	
 	private void resetNewCustomer() {
@@ -847,8 +847,8 @@ public class CashierApp extends JFrame implements ActionListener {
 				switchScreen(Screen.STOCK_CHECK);
 			}
 		} else if(src.equals(customerFindButton)) {
-			Customer c = new Customer(null, customerFNText.getText(), customerLNText.getText(),
-					null, null, null, null, null, null);
+			Customer c = new Customer(null, null, null, customerPhoneText.getText(), customerEmailText.getText(),
+					null, null, null, null);
 			Connection conn = DatabaseUtils.openConnection();
 			customerList = c.find(conn);
 			DatabaseUtils.closeConnection(conn);
@@ -873,8 +873,8 @@ public class CashierApp extends JFrame implements ActionListener {
 				Connection conn = DatabaseUtils.openConnection();
 				customer.insert(conn);
 				DatabaseUtils.closeConnection(conn);
-				customerFNText.setText(newCustFNText.getText());
-				customerLNText.setText(newCustLNText.getText());
+				customerEmailText.setText(newCustFNText.getText());
+				customerPhoneText.setText(newCustLNText.getText());
 				resetNewCustomer();
 				customerInfoText.setText(customer.toString());
 				updateTable(confirmOrderTable, checkoutList, CHECKOUT_COLS);

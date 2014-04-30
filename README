@@ -1,0 +1,44 @@
+Derrick Tilsner dtt13
+Final Project
+April 30, 2014
+
+The files included in this folder are the following:
+
+Report:
+- derrick_tilsner_final_report.pdf
+
+Code: All of these files are contained in the src folder
+- BusinessApp.java
+- BusinessTransaction.java
+- CashierApp.java
+- Category.java
+- Consists.java
+- Customer.java
+- DatabaseUtils.java
+- Product.java
+- Relation.java
+- Store.java
+- Supply.java
+- WebApp.java
+
+
+This project consists of three interfaces: BusinessApp, CashierApp, and WebApp.
+
+To compile and run each interface, make sure to be in the src folder and run the following commands. The following commands were tested using Java 7.
+
+BusinessApp:
+javac BusinessApp.java DatabaseUtils.java
+
+java BusinessApp
+
+
+CashierApp:
+javac BusinessTransaction.java CashierApp.java Consists.java Customer.java DatabaseUtils.java Product.java Relation.java Store.java Supply.java
+
+java CashierApp
+
+
+WebApp:
+javac Category.java DatabaseUtils.java Product.java Relation.java Store.java WebApp.java
+
+java WebApp
