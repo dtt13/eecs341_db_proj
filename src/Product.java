@@ -65,7 +65,7 @@ public class Product extends Relation {
 	
 	public List<Relation> find(Connection conn, Store store) {
 		// generate sql expression
-		StringBuilder sql  = new StringBuilder("select p.`upc`, p.`pname`, p.`brand`, p.`package_quantity` "
+		StringBuilder sql  = new StringBuilder("select p.`upc`, p.`pname`, p.`brand`, p.`package_quantity`, s.`price` "
 				+ "from products p, stock s where s.`sid`=" + store.getSid() + " and s.`upc`=p.`upc`");
 		String attributeNames[] = attributes.keySet().toArray(new String[]{});
 		for(int i = 0; i < attributeNames.length; i++) {
@@ -76,7 +76,6 @@ public class Product extends Relation {
 		List<Relation> pList = new ArrayList<Relation>();
 		try {
 			PreparedStatement findProduct = conn.prepareStatement(sql.toString());
-			
 			for(int i = 0; i < attributeNames.length; i++) {
 				if(attributeNames[i].equals(QUANTITY)) {
 					findProduct.setInt(i + 1, (Integer)attributes.get(attributeNames[i]));
@@ -94,6 +93,70 @@ public class Product extends Relation {
 			pList = null;
 		}
 		return pList;
+	}
+	
+	public List<Relation> findByPrice(Connection conn, Store store) {
+		// generate sql expression
+		StringBuilder sql  = new StringBuilder("select p.`upc`, p.`pname`, p.`brand`, p.`package_quantity`, s.`price` "
+				+ "from products p, stock s where s.`sid`=" + store.getSid() + " and s.`upc`=p.`upc`");
+		String attributeNames[] = attributes.keySet().toArray(new String[]{});
+		for(int i = 0; i < attributeNames.length; i++) {
+			sql.append(" and p.`" + attributeNames[i] + "`= ?");
+		}
+		sql.append(" order by s.`price` asc;");
+		// query database and extract results
+		List<Relation> pList = new ArrayList<Relation>();
+		try {
+			PreparedStatement findProduct = conn.prepareStatement(sql.toString());
+			for(int i = 0; i < attributeNames.length; i++) {
+				if(attributeNames[i].equals(QUANTITY)) {
+					findProduct.setInt(i + 1, (Integer)attributes.get(attributeNames[i]));
+				} else {
+					findProduct.setString(i + 1, (String)attributes.get(attributeNames[i]));
+				}
+			}
+			ResultSet result = findProduct.executeQuery();
+			while(result.next()) {
+				pList.add(new Product(result));
+			}
+		} catch(SQLException e) {
+			System.err.println("Error getting product data");
+			System.err.println(e.getMessage());
+			pList = null;
+		}
+		return pList;
+	}
+	
+	public List<Relation> findByPopularity(Connection conn, Store store) {
+		StringBuilder sql  = new StringBuilder("select pop.`upc`, pop.`pname`, pop.`brand`, pop.`package_quantity`, t.`price` "
+				+ "from (select p.`upc`, p.`pname`, p.`brand`, p.`package_quantity`, sum(c.`quantity`) as popularity from products p, consists c, purchase r "
+				+ "where r.`sid`='" + store.getSid() + "' and r.`order_no`=c.`order_no` and c.`upc`=p.`upc`");
+		String attributeNames[] = attributes.keySet().toArray(new String[]{});
+		for(int i = 0; i < attributeNames.length; i++) {
+			sql.append(" and p.`" + attributeNames[i] + "`= ?");
+		}
+		sql.append(" group by p.`upc`, p.`pname`, p.`brand`, p.`package_quantity`) as pop, "
+				+ "stock t where pop.`upc`=t.`upc` and t.`sid`='"+ store.getSid() + "' order by pop.`popularity` desc;");
+		List<Relation> pList = new ArrayList<Relation>();
+		try {
+			PreparedStatement findProduct = conn.prepareStatement(sql.toString());
+			for(int i = 0; i < attributeNames.length; i++) {
+				if(attributeNames[i].equals(QUANTITY)) {
+					findProduct.setInt(i + 1, (Integer)attributes.get(attributeNames[i]));
+				} else {
+					findProduct.setString(i + 1, (String)attributes.get(attributeNames[i]));
+				}
+			}
+			ResultSet result = findProduct.executeQuery();
+			while(result.next()) {
+				pList.add(new Product(result));
+			}
+			return pList;
+		} catch(SQLException e) {
+			System.err.println("Could not get products from categories");
+			System.err.println(e.getMessage());
+		}
+		return null;
 	}
 	
 	public Integer findStock(Connection conn, Store store) {
@@ -121,7 +184,7 @@ public class Product extends Relation {
 				price = result.getDouble(1);
 				return price;
 			} else {
-				throw new SQLException("Could no get price");
+				throw new SQLException("Could not get price");
 			}
 		} catch(SQLException e) {
 			System.err.println(e.getMessage());
@@ -159,6 +222,26 @@ public class Product extends Relation {
 			System.err.println(e.getMessage());
 		}
 		return null;
+	}
+	
+	public static String[][] createTableDataWithPrice(List<Relation> relations, String[] columnNames){
+		String[][] output = new String[relations.size()][columnNames.length];
+		for(int tuple = 0; tuple < output.length; tuple++) {
+			for(int columnNum = 0; columnNum < output[tuple].length; columnNum++) {
+				Object result = null;
+				if(columnNames[columnNum].equals(PRICE)) {
+					result = "$" + String.format("%10.2f", ((Product)relations.get(tuple)).getPrice());
+				} else {
+					result = relations.get(tuple).attributes.get(columnNames[columnNum]);
+				}
+				if(result != null) {
+					output[tuple][columnNum] = result.toString();
+				} else {
+					output[tuple][columnNum] = "";
+				}
+			}
+		}
+		return output;
 	}
 	
 	@Override

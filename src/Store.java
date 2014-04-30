@@ -94,6 +94,10 @@ public class Store extends Relation {
 		return (String)attributes.get(STATE);
 	}
 	
+	public String getZip() {
+		return (String)attributes.get(ZIP);
+	}
+	
 	public String[] getHours() {
 		return new String[]{
 				(String)attributes.get(SUN),
@@ -138,6 +142,26 @@ public class Store extends Relation {
 		return sList;
 	}
 	
+	public String getStoreInfo() {
+		StringBuilder builder = new StringBuilder();
+		builder.append(getStreet() + "\n");
+		builder.append(getCity() + ", ");
+		builder.append(getState() + " ");
+		builder.append(getZip() + "\n");
+		if(attributes.get(PHONE) != null) {
+			builder.append(getPhone() + "\n");
+		}
+		String[] hours = getHours();
+		builder.append("Sunday:\t" + formatHours(hours[0]) + "\n");
+		builder.append("Monday:\t" + formatHours(hours[1]) + "\n");
+		builder.append("Tuesday:\t" + formatHours(hours[2]) + "\n");
+		builder.append("Wednesday:\t" + formatHours(hours[3]) + "\n");
+		builder.append("Thursday:\t" + formatHours(hours[4]) + "\n");
+		builder.append("Friday:\t" + formatHours(hours[5]) + "\n");
+		builder.append("Saturday:\t" + formatHours(hours[6]));
+		return builder.toString();
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -169,4 +193,22 @@ public class Store extends Relation {
 		}
 		return builder.toString();
 	}
+	
+	private String formatHours(String hours) {
+		if(hours != null) {
+			String[] times = hours.split("-");
+			for(int i = 0; i < times.length; i++) {
+				int timeVal = Integer.parseInt(times[i]);
+				
+				if(timeVal < 1300) {
+					times[i] = Integer.toString(timeVal / 100) + ":" + times[i].substring(2) + "AM";
+				} else {
+					times[i] = Integer.toString((timeVal / 100) - 12) + ":" + times[i].substring(2) + "PM";
+				}
+			}
+			return times[0] + " - " + times[1];
+		}
+		return "Closed";
+	}
+	
 }

@@ -25,32 +25,43 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.table.DefaultTableModel;
 
 public class WebApp extends JFrame implements ActionListener {
-	private static final String[] ITEM_SEARCH_COLS = {"pname", "brand", "package_quantity"};//, "price"};
+	private static final String[] ITEM_SEARCH_COLS = {"pname", "brand", "package_quantity", "price"};
+	private static final String[] STORE_SEARCH_COLS = {"street", "city", "state", "zip"};
 	
 	private static final Store webStore = new Store("1", null, null, null, null, null, null, null, null, null, null, null, null); // TODO make real web store entry
 	
 	private static enum Screen {
-		ITEM_SEARCH("Item Search");
+		ITEM_SEARCH("Item Search"),
+		STORE_SEARCH("Store Finder");
 		private String name;
 		private Screen(String name) { this.name = name; }		
 		public String getName() { return name; }
 	};
 	
-	private Screen currentScreen;
+//	private Screen currentScreen;
 	
-	private Category lastTouchedCategory;
+	private Category lastTouchedCategory = null;
 	private String lastComboSelection;
+	
+	private List<Relation> productList = null;
+	private List<Relation> storeList = null;
 	
 	// store logo and title
 	private JPanel titlePanel;
 	private ImageIcon logo;
 	private JLabel titleLabel;
+	private JButton itemLookupButton;
+	private JButton storeFinderButton;
 	
 	// top-level panel
 	private JPanel topLevelScreen;
@@ -64,6 +75,18 @@ public class WebApp extends JFrame implements ActionListener {
 	private JMenuBar categoryMenu;
 	private JTable itemSearchTable;
 	
+	// store search screen
+	private JPanel storeSearchPanel;
+	private JLabel searchCityLabel;
+	private JLabel searchStateLabel;
+	private JLabel searchZipLabel;
+	private JTextField searchCityText;
+	private JTextField searchStateText;
+	private JTextField searchZipText;
+	private JButton storeSearchButton;
+	private JTable storeSearchTable;
+	private JTextArea storeInfoArea;
+	
 	public WebApp() {
 		this.setLayout(new BorderLayout());
 		GroupLayout gl;
@@ -72,7 +95,15 @@ public class WebApp extends JFrame implements ActionListener {
 		titlePanel = new JPanel(new BorderLayout());
 		logo = new ImageIcon("logo.jpg");
 		titleLabel = new JLabel(logo);
+		itemLookupButton = new JButton("Home");
+		itemLookupButton.addActionListener(this);
+		storeFinderButton = new JButton("Store Locator");
+		storeFinderButton.addActionListener(this);
+		JPanel signOutPanel = new JPanel();
+		signOutPanel.add(itemLookupButton);
+		signOutPanel.add(storeFinderButton);
 		titlePanel.add(titleLabel, BorderLayout.WEST);
+		titlePanel.add(signOutPanel, BorderLayout.EAST);
 		this.add(titlePanel, BorderLayout.NORTH);
 		
 		// top-level panel
@@ -124,14 +155,103 @@ public class WebApp extends JFrame implements ActionListener {
 				);
 		topLevelScreen.add(itemSearchPanel, Screen.ITEM_SEARCH.getName());
 		
+		// store search screen
+		storeSearchPanel = new JPanel();
+		gl = new GroupLayout(storeSearchPanel);
+		storeSearchPanel.setLayout(gl);
+		gl.setAutoCreateGaps(true);
+		gl.setAutoCreateContainerGaps(true);
+		searchCityLabel = new JLabel("City");
+		searchStateLabel = new JLabel("State");
+		searchZipLabel = new JLabel("Zip code");
+		searchCityText = new JTextField();
+		searchStateText = new JTextField();
+		searchZipText = new JTextField();
+		storeSearchButton = new JButton("Find");
+		storeSearchButton.addActionListener(this);
+		storeSearchTable = createTable(STORE_SEARCH_COLS);
+		storeSearchTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+			@Override
+			public void valueChanged(ListSelectionEvent e) {
+				int storeIndex = storeSearchTable.getSelectedRow();
+				if(storeIndex >= 0) {
+					storeInfoArea.setText(((Store)storeList.get(storeIndex)).getStoreInfo());
+					System.out.println(storeInfoArea.getSize());
+				}
+			}
+		});
+		JScrollPane storeSearchScrollPane = new JScrollPane(storeSearchTable);
+		storeInfoArea = new JTextArea();
+		storeInfoArea.setEditable(false);
+		gl.setHorizontalGroup(
+				gl.createSequentialGroup()
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.TRAILING)
+						.addGroup(gl.createSequentialGroup()
+								.addComponent(searchCityLabel)
+								.addComponent(searchCityText)
+								)
+						.addGroup(gl.createSequentialGroup()
+								.addComponent(searchStateLabel)
+								.addComponent(searchStateText)
+								)
+						.addGroup(gl.createSequentialGroup()
+								.addComponent(searchZipLabel)
+								.addComponent(searchZipText)
+								)
+						.addComponent(storeSearchButton)
+						)
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.LEADING)
+						.addComponent(storeInfoArea)
+						.addComponent(storeSearchScrollPane)
+						)
+				);
+		gl.setVerticalGroup(
+				gl.createSequentialGroup()
+				.addGroup(gl.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addGroup(gl.createSequentialGroup()
+								.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
+										.addComponent(searchCityLabel)
+										.addComponent(searchCityText)
+										)
+								.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
+										.addComponent(searchStateLabel)
+										.addComponent(searchStateText)
+										)
+								.addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
+										.addComponent(searchZipLabel)
+										.addComponent(searchZipText)
+										)
+								.addComponent(storeSearchButton)
+								)
+						.addGroup(gl.createSequentialGroup()
+								.addComponent(storeInfoArea)
+								.addComponent(storeSearchScrollPane)
+								)
+						)
+				);
+		topLevelScreen.add(storeSearchPanel, Screen.STORE_SEARCH.getName());
+		
 		switchScreen(Screen.ITEM_SEARCH);
+//		switchScreen(Screen.STORE_SEARCH);
 	}
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		JButton src = (JButton)e.getSource();
 		if(src.equals(itemSearchButton)) {
-			System.out.println("Searching....");
+			lastTouchedCategory = null;
+			itemSearchEvent();
+		} else if(src.equals(storeSearchButton)) {
+			Store s = new Store(null, null, null, searchCityText.getText(), searchStateText.getText(), searchZipText.getText(),
+					null, null, null, null, null, null, null);
+			Connection conn = DatabaseUtils.openConnection();
+			storeList = s.find(conn);
+			updateTable(storeSearchTable, storeList, STORE_SEARCH_COLS);
+			DatabaseUtils.closeConnection(conn);
+		} else if(src.equals(itemLookupButton)) {
+			switchScreen(Screen.ITEM_SEARCH);
+		} else if(src.equals(storeFinderButton)) {
+			switchScreen(Screen.STORE_SEARCH);
 		}
 	}
 	
@@ -163,18 +283,19 @@ public class WebApp extends JFrame implements ActionListener {
 						menu.setPopupMenuVisible(true);
 					}
 					
-					@Override
-					public void mouseExited(MouseEvent e) {
-						CategoryMenu menu = (CategoryMenu)e.getSource();
-//						menu.setPopupMenuVisible(false);
-						// TODO don't close unless leaving menuitems too
-					}
+//					@Override
+//					public void mouseExited(MouseEvent e) {
+//						CategoryMenu menu = (CategoryMenu)e.getSource();
+////						menu.setPopupMenuVisible(false);
+//						// TODO don't close unless leaving menuitems too
+//					}
 					
 					@Override
 					public void mouseClicked(MouseEvent e) {
 						CategoryMenu menu = (CategoryMenu)e.getSource();
 						menu.setPopupMenuVisible(false);
 						lastTouchedCategory = menu.getCategory();
+						searchBrandText.setText("");
 						itemSearchEvent();
 					}
 				});
@@ -188,6 +309,7 @@ public class WebApp extends JFrame implements ActionListener {
 							SubcategoryMenu menu = (SubcategoryMenu)e.getSource();
 							menu.getParentMenu().setPopupMenuVisible(false);
 							lastTouchedCategory = menu.getCategory();
+							searchBrandText.setText("");
 							itemSearchEvent();
 						}
 					});
@@ -222,6 +344,7 @@ public class WebApp extends JFrame implements ActionListener {
 				return false;
 			}
 		};
+		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		return table;
 	}
 	
@@ -230,35 +353,52 @@ public class WebApp extends JFrame implements ActionListener {
 		table.setModel(new DefaultTableModel(tableData, columnNames));
 	}
 	
-	private void clearTable(JTable table) {
-		int numColumns = table.getColumnCount();
-		String[] columnNames = new String[numColumns];
-		for(int i = 0; i < numColumns; i++) {
-			columnNames[i] = table.getColumnName(i);
-		}
-		String[][] tableData = new String[0][numColumns];
+	private void updateTableWithPrice(JTable table, List<Relation> data, String[] columnNames) {
+		String[][] tableData = Product.createTableDataWithPrice(data, columnNames);
 		table.setModel(new DefaultTableModel(tableData, columnNames));
 	}
 	
+//	private void clearTable(JTable table) {
+//		int numColumns = table.getColumnCount();
+//		String[] columnNames = new String[numColumns];
+//		for(int i = 0; i < numColumns; i++) {
+//			columnNames[i] = table.getColumnName(i);
+//		}
+//		String[][] tableData = new String[0][numColumns];
+//		table.setModel(new DefaultTableModel(tableData, columnNames));
+//	}
+	
 	private void itemSearchEvent() {
-		if(lastTouchedCategory != null) {
-			Connection conn = DatabaseUtils.openConnection();
-			List<Relation> results = null;
-			switch(lastComboSelection) {
-			case "None":
-				results = lastTouchedCategory.getProducts(conn, webStore);
-				break;
-			case "Price":
-				results = lastTouchedCategory.getProductsByPrice(conn, webStore);
-				break;
-			case "Popularity":
-				results = lastTouchedCategory.getProductsByPopularity(conn, webStore);
-				break;
+		Connection conn = DatabaseUtils.openConnection();
+		switch(lastComboSelection) {
+		case "None":
+			if(lastTouchedCategory != null) {
+				productList = lastTouchedCategory.getProducts(conn, webStore);
+			} else {
+				Product p = new Product(null, null, searchBrandText.getText(), null);
+				productList = p.find(conn, webStore);
 			}
-			DatabaseUtils.closeConnection(conn);
-			if(results != null) {
-				updateTable(itemSearchTable, results, ITEM_SEARCH_COLS);
+			break;
+		case "Price":
+			if(lastTouchedCategory != null) {
+				productList = lastTouchedCategory.getProductsByPrice(conn, webStore);
+			} else {
+				Product p = new Product(null, null, searchBrandText.getText(), null);
+				productList = p.findByPrice(conn, webStore);
 			}
+			break;
+		case "Popularity":
+			if(lastTouchedCategory != null) {
+				productList = lastTouchedCategory.getProductsByPopularity(conn, webStore);
+			} else {
+				Product p = new Product(null, null, searchBrandText.getText(), null);
+				productList = p.findByPopularity(conn, webStore);
+			}
+			break;
+		}
+		DatabaseUtils.closeConnection(conn);
+		if(productList != null) {
+			updateTableWithPrice(itemSearchTable, productList, ITEM_SEARCH_COLS);
 		}
 	}
 	
@@ -266,7 +406,7 @@ public class WebApp extends JFrame implements ActionListener {
 		CardLayout layout = (CardLayout)topLevelScreen.getLayout();
 		layout.show(topLevelScreen, screen.getName());
 		titleLabel.setText(screen.getName());
-		currentScreen = screen;
+//		currentScreen = screen;
 	}
 	
 	private static void setLookAndFeel() {

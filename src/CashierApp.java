@@ -19,6 +19,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.table.DefaultTableModel;
@@ -651,6 +652,7 @@ public class CashierApp extends JFrame implements ActionListener {
 				return false;
 			}
 		};
+		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		return table;
 	}
 	

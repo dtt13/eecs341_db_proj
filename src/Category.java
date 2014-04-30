@@ -127,9 +127,14 @@ public class Category extends Relation {
 			Statement stmt = conn.createStatement();
 			ResultSet result;
 			if(getParentId() == null) { // top-level
-				result = stmt.executeQuery("select distinct(p.`upc`), p.`pname`, p.`brand`, p.`package_quantity`, t.`price`"
-						+ "from category c, `has_cat` h, products p, stock t where c.`parent_id`='" + getCatId()
-						+ "' and c.`cat_id`=h.`cat_id` and p.`upc`=h.`upc` and p.`upc`=t.`upc` and t.`sid`='"+ store.getSid() + "';");
+//				result = stmt.executeQuery("select distinct(p.`upc`), p.`pname`, p.`brand`, p.`package_quantity`, t.`price`"
+//						+ "from category c, `has_cat` h, products p, stock t where c.`parent_id`='" + getCatId()
+//						+ "' and c.`cat_id`=h.`cat_id` and p.`upc`=h.`upc` and p.`upc`=t.`upc` and t.`sid`='"+ store.getSid() + "';");
+				result = stmt.executeQuery("select distinct(pop.`upc`), pop.`pname`, pop.`brand`, pop.`package_quantity`, t.`price` "
+						+ "from (select p.`upc`, p.`pname`, p.`brand`, p.`package_quantity`, sum(c.`quantity`) as popularity from products p, consists c, purchase r "
+						+ "where r.`sid`='" + store.getSid() + "' and r.`order_no`=c.`order_no` and c.`upc`=p.`upc` group by p.`upc`, p.`pname`, p.`brand`, p.`package_quantity`) as pop, "
+						+ "category c, `has_cat` h, stock t where c.`parent_id`='" + getCatId() + "' and c.`cat_id`=h.`cat_id` and pop.`upc`=h.`upc` and pop.`upc`=t.`upc` and t.`sid`='"+ store.getSid()
+						+ "' order by pop.`popularity` desc;");
 				//TODO fix
 			} else { // subcategory
 				result = stmt.executeQuery("select pop.`upc`, pop.`pname`, pop.`brand`, pop.`package_quantity`, t.`price` "
