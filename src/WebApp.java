@@ -48,8 +48,6 @@ public class WebApp extends JFrame implements ActionListener {
 		public String getName() { return name; }
 	};
 	
-//	private Screen currentScreen;
-	
 	private Category lastTouchedCategory = null;
 	private String lastComboSelection;
 	
@@ -232,7 +230,6 @@ public class WebApp extends JFrame implements ActionListener {
 		topLevelScreen.add(storeSearchPanel, Screen.STORE_SEARCH.getName());
 		
 		switchScreen(Screen.ITEM_SEARCH);
-//		switchScreen(Screen.STORE_SEARCH);
 	}
 	
 	@Override
@@ -282,13 +279,6 @@ public class WebApp extends JFrame implements ActionListener {
 						}
 						menu.setPopupMenuVisible(true);
 					}
-					
-//					@Override
-//					public void mouseExited(MouseEvent e) {
-//						CategoryMenu menu = (CategoryMenu)e.getSource();
-////						menu.setPopupMenuVisible(false);
-//						// TODO don't close unless leaving menuitems too
-//					}
 					
 					@Override
 					public void mouseClicked(MouseEvent e) {
@@ -358,16 +348,6 @@ public class WebApp extends JFrame implements ActionListener {
 		table.setModel(new DefaultTableModel(tableData, columnNames));
 	}
 	
-//	private void clearTable(JTable table) {
-//		int numColumns = table.getColumnCount();
-//		String[] columnNames = new String[numColumns];
-//		for(int i = 0; i < numColumns; i++) {
-//			columnNames[i] = table.getColumnName(i);
-//		}
-//		String[][] tableData = new String[0][numColumns];
-//		table.setModel(new DefaultTableModel(tableData, columnNames));
-//	}
-	
 	private void itemSearchEvent() {
 		Connection conn = DatabaseUtils.openConnection();
 		switch(lastComboSelection) {
@@ -406,7 +386,6 @@ public class WebApp extends JFrame implements ActionListener {
 		CardLayout layout = (CardLayout)topLevelScreen.getLayout();
 		layout.show(topLevelScreen, screen.getName());
 		titleLabel.setText(screen.getName());
-//		currentScreen = screen;
 	}
 	
 	private static void setLookAndFeel() {
@@ -475,8 +454,6 @@ public class WebApp extends JFrame implements ActionListener {
             boolean isVisible = isPopupMenuVisible();
             if (b != isVisible) {
                 if ((b==true) && isShowing()) {
-                    //Set location of popupMenu (pulldown or pullright).
-                    //Perhaps this should be dictated by L&F.
                     int x = 0;
                     int y = 0;
                     Container parent = getParent();
