@@ -31,9 +31,8 @@ public class BusinessTransaction {
 			}
 			stmt.executeUpdate(generateConsistsUpdate(orderNo, consistsItems));
 			stmt.executeUpdate(generatePurchaseUpdate(orderNo, store, customer));
-			// TODO also subtract from inventory
+			stmt.executeUpdate(generateStockUpdate(store, consistsItems));
 			conn.commit();
-//			System.out.println("successfully commited order");
 		} catch (SQLException e) {
 			System.err.println(e.getMessage());
 		} finally {
@@ -66,6 +65,14 @@ public class BusinessTransaction {
 					", '" + df.format(Calendar.getInstance().getTime()) + "');";
 	}
 	
+	private static String generateStockUpdate(Store store, List<Relation> consistsItems) {
+		StringBuilder builder = new StringBuilder();
+		for(Relation item : consistsItems) {
+			Consists c = (Consists)item;
+			builder.append("update stock set quantity = quantity - " + c.getQuantity() + " where upc='" + c.getUpc() + "' and sid='" + store.getSid() + "';\n");
+		}
+		return builder.toString();
+	}
 	
 	private static double calculateTotalAmount(List<Relation> consistsItems) {
 		double total = 0.0;

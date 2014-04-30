@@ -745,8 +745,6 @@ public class CashierApp extends JFrame implements ActionListener {
 			if(storeIndex >= 0) {
 				store = (Store)storeList.get(storeIndex);
 				switchScreen(Screen.ITEM_SCAN);
-			} else {
-				// TODO display message to gui
 			}
 		} else if(src.equals(itemSearchButton)) {
 			Product p = new Product(itemSearchUpcText.getText(), null,
