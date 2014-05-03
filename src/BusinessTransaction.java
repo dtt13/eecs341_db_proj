@@ -29,9 +29,9 @@ public class BusinessTransaction {
 			} else {
 				throw new SQLException("Could not auto increment order");
 			}
-			stmt.executeUpdate(generateConsistsUpdate(orderNo, consistsItems));
-			stmt.executeUpdate(generatePurchaseUpdate(orderNo, store, customer));
-			stmt.executeUpdate(generateStockUpdate(store, consistsItems));
+			executeConsistsUpdate(conn, orderNo, consistsItems);
+			executePurchaseUpdate(conn, orderNo, store, customer);
+			executeStockUpdate(conn, store, consistsItems);
 			conn.commit();
 		} catch (SQLException e) {
 			System.err.println(e.getMessage());
@@ -44,7 +44,7 @@ public class BusinessTransaction {
 		return "insert into orders(`order_amount`) value (" + calculateTotalAmount(consistsItems) + ");";
 	}
 
-	private static String generateConsistsUpdate(int orderNo, List<Relation> consistsItems) {
+	private static void executeConsistsUpdate(Connection conn, int orderNo, List<Relation> consistsItems) {
 		StringBuilder builder = new StringBuilder("insert into consists(`order_no`, `upc`, `price`, `quantity`) values ");
 		ListIterator<Relation> it = consistsItems.listIterator();
 		while(it.hasNext()) {
@@ -55,23 +55,39 @@ public class BusinessTransaction {
 			}
 		}
 		builder.append(";");
-		return builder.toString();
-	}
-	
-	private static String generatePurchaseUpdate(int orderNo, Store store, Customer customer) {
-		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-		return "insert into purchase(`cid`, `sid`, `order_no`, `date`) values ('" + 
-					customer.getCid() + "', '" + store.getSid() + "', " + orderNo + 
-					", '" + df.format(Calendar.getInstance().getTime()) + "');";
-	}
-	
-	private static String generateStockUpdate(Store store, List<Relation> consistsItems) {
-		StringBuilder builder = new StringBuilder();
-		for(Relation item : consistsItems) {
-			Consists c = (Consists)item;
-			builder.append("update stock set quantity = quantity - " + c.getQuantity() + " where upc='" + c.getUpc() + "' and sid='" + store.getSid() + "';\n");
+		try {
+			Statement stmt = conn.createStatement();
+			stmt.executeUpdate(builder.toString());
+		} catch (SQLException e) {
+			System.err.println("Error updating consists");
+			System.err.println(e.getMessage());
 		}
-		return builder.toString();
+	}
+	
+	private static void executePurchaseUpdate(Connection conn, int orderNo, Store store, Customer customer) {
+		try {
+			Statement stmt = conn.createStatement();
+			DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+			stmt.executeUpdate("insert into purchase(`cid`, `sid`, `order_no`, `date`) values ('" + 
+					customer.getCid() + "', '" + store.getSid() + "', " + orderNo + 
+					", '" + df.format(Calendar.getInstance().getTime()) + "');");
+		} catch(SQLException e) {
+			System.err.println("Error updating purchase");
+			System.err.println(e.getMessage());
+		}
+	}
+	
+	private static void executeStockUpdate(Connection conn, Store store, List<Relation> consistsItems) {
+		try {
+			Statement stmt = conn.createStatement();
+			for(Relation item : consistsItems) {
+				Consists c = (Consists)item;
+				stmt.executeUpdate("update stock set quantity = quantity - " + c.getQuantity() + " where upc='" + c.getUpc() + "' and sid='" + store.getSid() + "';");
+			}
+		}catch (SQLException e) {
+			System.err.println("Error updating stock");
+			System.err.println(e.getMessage());
+		}
 	}
 	
 	private static double calculateTotalAmount(List<Relation> consistsItems) {
@@ -82,4 +98,14 @@ public class BusinessTransaction {
 		}
 		return total;
 	}
+	
+//	public static String generatePurchaseRandom(int orderNo, Store store, Customer customer) {
+//		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+//		long unixTime = (946684800 + (long)((1398988800-946684800)*Math.random()))*1000;
+//		String date = df.format(new Date(unixTime));
+//		return "insert into purchase(`cid`, `sid`, `order_no`, `date`) values ('" + 
+//					customer.getCid() + "', '" + store.getSid() + "', " + orderNo + 
+//					", '" + date + "');";
+//	}
+	
 }
